@@ -4,15 +4,15 @@ import shelljs from 'shelljs';
 import fs from 'fs';
 import path from 'path';
 
-async function createComponent() {
+async function createPage() {
     try {
-        const componentName = await askComponentName(); // Demande du nom du composant
+        const pageName = await askPageName(); // Demande du nom du composant
         const moduleName = await askModuleName(); // Demande du nom du module
         const modulePath = path.join(process.cwd(), 'src', 'app', moduleName);
 
         if (fs.existsSync(modulePath)) {
-            shelljs.exec(`ng g c ${moduleName}/components/${componentName}`);
-            console.info(`Le composant ${componentName} a été créé avec succès dans le module ${moduleName}.`);
+            shelljs.exec(`ng g c ${moduleName}/views/${pageName}`);
+            console.info(`Le composant ${pageName} a été créé avec succès dans le module ${moduleName}.`);
         } else {
             console.error(`Erreur : le module "${moduleName}" n'existe pas dans src/app.`);
         }
@@ -22,13 +22,13 @@ async function createComponent() {
 }
 
 // Demande du nom du composant
-function askComponentName() {
+function askPageName() {
     return inquirer.prompt([
         {
-            name: 'componentName',
-            message: 'Quel est le nom du composant ?'
+            name: 'pageName',
+            message: 'Quel est le nom de la page ?'
         },
-    ]).then(answers => answers.componentName);
+    ]).then(answers => answers.pageName);
 }
 
 // Demande du nom du module
@@ -42,4 +42,4 @@ function askModuleName() {
 }
 
 // Exécute la fonction principale
-createComponent();
+createPage();

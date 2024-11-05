@@ -5,10 +5,10 @@ import fs from 'fs';
 import path from 'path';
 
 // Fonction principale pour démarrer le processus de création de service
-export function createService() {
+async function createService() {
     try {
-        const serviceName = askServiceName();
-        const moduleName = askModuleName();
+        const serviceName = await askServiceName();
+        const moduleName = await askModuleName();
         const modulePath = path.join(process.cwd(), 'src', 'app', moduleName);
 
         if (moduleExists(modulePath)) {

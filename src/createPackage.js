@@ -4,9 +4,9 @@ import shelljs from 'shelljs';
 import fs from 'fs';
 import path from 'path';
 
-export function createPackage() {
+async function createPackage() {
     // Demande de nom du module (ou package)
-    const { moduleName } = inquirer.prompt([
+    const { moduleName } = await inquirer.prompt([
         {
             name: 'moduleName',
             message: 'Quel est le nom du package ?',
@@ -24,12 +24,7 @@ export function createPackage() {
     const routesContent = `
 import { Routes } from '@angular/router';
 
-export const ${moduleName.toUpperCase()}_ROUTES: Routes = [
-    {
-        path: '${moduleName}',
-        loadComponent: () => import('./views/${moduleName}-component/${moduleName}-component.component').then(m => m.${capitalize(moduleName)}Component),
-    }
-];
+export const ${moduleName.toUpperCase()}_ROUTES: Routes = [];
     `;
     fs.writeFileSync(path.join(modulePath, 'routes.ts'), routesContent);
     console.info(`Le fichier routes.ts a été créé avec succès dans ${modulePath}.`);
@@ -64,6 +59,9 @@ function updateAppRoutes(moduleName) {
 
         if (redirectIndex !== -1 && !content.includes(routeLine)) {
             content = content.slice(0, redirectIndex) + routeLine + "\n" + content.slice(redirectIndex);
+        } else if (!content.includes(routeLine)) {
+            const routesArrayEnd = content.lastIndexOf("]");
+            content = content.slice(0, routesArrayEnd) + "\n" + routeLine + content.slice(routesArrayEnd);
         }
 
         // Écriture du contenu mis à jour dans app.routes.ts

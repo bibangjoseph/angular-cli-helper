@@ -5,10 +5,10 @@ import fs from 'fs';
 import path from 'path';
 
 // Fonction principale pour démarrer le processus de création de modèle
-export function createModel() {
+async function createModel() {
     try {
-        const modelName = askModelName();
-        const moduleName = askModuleName();
+        const modelName = await askModelName();
+        const moduleName = await askModuleName();
         const modulePath = path.join(process.cwd(), 'src', 'app', moduleName);
 
         if (moduleExists(modulePath)) {

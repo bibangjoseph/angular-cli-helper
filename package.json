@@ -1,6 +1,6 @@
 {
     "name": "angular-cli-helper",
-    "version": "1.1.0",
+    "version": "2.2.0",
     "main": "index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
@@ -8,7 +8,9 @@
     "bin": {
         "create-component": "./src/createComponent.js",
         "create-service": "./src/createService.js",
-        "create-model": "./src/createModel.js"
+        "create-model": "./src/createModel.js",
+        "create-page": "./src/createPage.js",
+        "create-package": "./src/createPackage.js"
     },
     "keywords": [],
     "author": "",
