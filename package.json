@@ -1,0 +1,21 @@
+{
+    "name": "angular-cli-helper",
+    "version": "1.0.0",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "bin": {
+        "create-component": "./src/createComponent.js",
+        "create-service": "./src/createService.js",
+        "create-model": "./src/createModel.js"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "description": "",
+    "dependencies": {
+        "inquirer": "^12.0.1",
+        "shelljs": "^0.8.5"
+    }
+}
