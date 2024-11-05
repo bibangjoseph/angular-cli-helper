@@ -13,7 +13,7 @@ npm install angular-cli-helper --save-dev
 Ensuite, ajoutez les commandes personnalisées dans la section `scripts` de votre fichier `package.json` pour pouvoir les exécuter directement avec `npm run` :
 
 ```json
-"scripts": {
+"scripts" : {
     "create-component": "create-component",
     "create-service": "create-service",
     "create-model": "create-model",

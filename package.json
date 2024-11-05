@@ -1,10 +1,8 @@
 {
     "name": "angular-cli-helper",
-    "version": "2.2.0",
+    "version": "2.2.1",
     "main": "index.js",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
+    "description": "A CLI helper for managing Angular projects with commands to create components, services, models, pages, and packages.",
     "bin": {
         "create-component": "./src/createComponent.js",
         "create-service": "./src/createService.js",
@@ -12,11 +10,22 @@
         "create-page": "./src/createPage.js",
         "create-package": "./src/createPackage.js"
     },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
-    "description": "",
-    "dependencies": {
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/bibangjoseph/angular-cli-helper"
+    },
+    "keywords": [
+        "angular",
+        "cli",
+        "components",
+        "services",
+        "models",
+        "pages",
+        "packages"
+    ],
+    "author": "BIBANG BEFENE Joseph Donovan",
+    "license": "MIT",
+    "devDependencies": {
         "inquirer": "^12.0.1",
         "shelljs": "^0.8.5"
     },
