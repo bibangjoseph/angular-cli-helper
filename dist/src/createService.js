@@ -48,7 +48,7 @@ function moduleExists(modulePath) {
 
 // Génération du service
 function generateService(moduleName, serviceName) {
-    shelljs.exec(`ng g s ${moduleName}/services/${serviceName}`);
+    shelljs.exec(`ng g s features/${moduleName}/services/${serviceName}.service`);
     console.info(`Le service ${serviceName} a été créé avec succès dans le module ${moduleName}.`);
 }
 

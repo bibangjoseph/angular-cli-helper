@@ -99,12 +99,13 @@ La bibliothèque suit une structure de dossiers standard pour les modules Angula
 ```
 src/
 └── app/
-    └── <module-name>/
-        ├── components/
-        ├── services/
-        ├── models/
-        ├── views/
-        └── routes.ts
+    └── features
+         └──<module-name>/
+            ├── components/
+            ├── services/
+            ├── models/
+            ├── views/
+            └── routes.ts
 ```
 
 ## Compatibilité

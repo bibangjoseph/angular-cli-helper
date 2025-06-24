@@ -11,7 +11,7 @@ async function createPage() {
         const modulePath = path.join(process.cwd(), 'src', 'app', moduleName);
 
         if (fs.existsSync(modulePath)) {
-            shelljs.exec(`ng g c ${moduleName}/views/${pageName}`);
+            shelljs.exec(`ng g c features/${moduleName}/views/${pageName}.page`);
             console.info(`Le composant ${pageName} a été créé avec succès dans le module ${moduleName}.`);
         } else {
             console.error(`Erreur : le module "${moduleName}" n'existe pas dans src/app.`);

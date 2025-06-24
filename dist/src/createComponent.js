@@ -11,7 +11,7 @@ async function createComponent() {
         const modulePath = path.join(process.cwd(), 'src', 'app', moduleName);
 
         if (fs.existsSync(modulePath)) {
-            shelljs.exec(`ng g c ${moduleName}/components/${componentName}`);
+            shelljs.exec(`ng g c features/${moduleName}/components/${componentName}.component`);
             console.info(`Le composant ${componentName} a été créé avec succès dans le module ${moduleName}.`);
         } else {
             console.error(`Erreur : le module "${moduleName}" n'existe pas dans src/app.`);

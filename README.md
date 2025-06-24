@@ -1,14 +1,29 @@
+Voici le contenu complet prêt à être collé dans ton fichier `README.md` :
+
+
 # Angular CLI Helper
 
-**Angular CLI Helper** est une bibliothèque CLI conçue pour simplifier la gestion des projets Angular, compatible avec Angular 18. Elle facilite la création de packages, composants, services, modèles et pages au sein d'une structure modulaire, optimisant ainsi le flux de travail des développeurs.
+**Angular CLI Helper** est une bibliothèque CLI conçue pour simplifier la gestion des projets Angular, compatible avec Angular 17+ (standalone). Elle facilite la création de packages, composants, services, modèles et pages au sein d'une structure modulaire, optimisant ainsi le flux de travail des développeurs.
 
-## Installation
+---
+
+## 📦 Compatibilité des versions
+
+| Version de la librairie | Version Angular recommandée | Architecture utilisée         |
+|--------------------------|-----------------------------|-------------------------------|
+| `^3.0.0`                 | Angular 20+                 | Standalone / `features/`      |
+| `^2.x`                   | Angular 16+                 | Modules classiques             |
+| `^1.x`                   | Angular <= 15               | Modules classiques             |
+
+---
+
+## 🚀 Installation
 
 Installez la bibliothèque en tant que dépendance de développement avec la commande suivante :
 
 ```bash
 npm install angular-cli-helper --save-dev
-```
+````
 
 Ensuite, ajoutez les commandes personnalisées dans la section `scripts` de votre fichier `package.json` pour pouvoir les exécuter directement avec `npm run` :
 
@@ -24,83 +39,84 @@ Ensuite, ajoutez les commandes personnalisées dans la section `scripts` de votr
 
 Une fois configuré, vous pouvez exécuter les commandes en utilisant `npm run`.
 
-## Commandes disponibles
+---
+
+## ⚙️ Commandes disponibles
 
 ### 1. Créer un package
-
-La commande `create-package` génère une structure de package complète dans un module Angular spécifique. Elle crée les dossiers `views`, `models` et `components`, configure un fichier `routes.ts` pour définir les routes du module, et met à jour automatiquement le fichier `app.routes.ts` pour inclure les nouvelles routes du package.
 
 ```bash
 npm run create-package
 ```
 
-- **Prompts** :
-  - **Nom du package** : Nom du package à créer.
-  - **Module** : Nom du module auquel le package est lié.
+* **Prompts** :
 
-Cette commande facilite la création d’un package complet et son intégration dans la structure de routes de l'application Angular.
+  * **Nom du package** : Nom du package à créer.
+  * **Module** : Nom du module auquel le package est lié.
+
+Cette commande crée une structure complète dans `features/<module>/` avec les dossiers `components`, `views`, `models`, `services`, et met à jour automatiquement `app.routes.ts`.
 
 ---
 
 ### 2. Créer un composant
 
-La commande `create-component` génère un composant dans le dossier `components` d’un module spécifique.
-
 ```bash
 npm run create-component
 ```
 
-- **Prompts** :
-  - **Nom du composant** : Nom du composant à créer.
-  - **Module** : Nom du module dans lequel le composant sera ajouté.
+* **Prompts** :
+
+  * **Nom du composant** : Nom du composant à créer.
+  * **Module** : Nom du module dans lequel le composant sera ajouté.
+
+---
 
 ### 3. Créer un service
-
-La commande `create-service` crée un service dans le dossier `services` d’un module spécifique.
 
 ```bash
 npm run create-service
 ```
 
-- **Prompts** :
-  - **Nom du service** : Nom du service à créer.
-  - **Module** : Nom du module dans lequel le service sera ajouté.
+* **Prompts** :
+
+  * **Nom du service** : Nom du service à créer.
+  * **Module** : Nom du module dans lequel le service sera ajouté.
+
+---
 
 ### 4. Créer un modèle
-
-La commande `create-model` génère un modèle (interface) dans le dossier `models` d’un module spécifique.
 
 ```bash
 npm run create-model
 ```
 
-- **Prompts** :
-  - **Nom du modèle** : Nom du modèle à créer.
-  - **Module** : Nom du module dans lequel le modèle sera ajouté.
+* **Prompts** :
+
+  * **Nom du modèle** : Nom du modèle à créer.
+  * **Module** : Nom du module dans lequel le modèle sera ajouté.
+
+---
 
 ### 5. Créer une page
-
-La commande `create-page` génère une page dans le dossier `views` d’un module spécifique.
 
 ```bash
 npm run create-page
 ```
 
-- **Prompts** :
-  - **Nom de la page** : Nom de la page à créer.
-  - **Module** : Nom du module dans lequel la page sera ajoutée.
+* **Prompts** :
+
+  * **Nom de la page** : Nom de la page à créer.
+  * **Module** : Nom du module dans lequel la page sera ajoutée.
 
 ---
 
-## Structure de Dossiers
-
-La bibliothèque suit une structure de dossiers standard pour les modules Angular, comme illustré ci-dessous :
+## 🧱 Structure de dossiers générée
 
 ```
 src/
 └── app/
-    └── features
-         └──<module-name>/
+    └── features/
+        └── <nom-du-module>/
             ├── components/
             ├── services/
             ├── models/
@@ -108,10 +124,18 @@ src/
             └── routes.ts
 ```
 
-## Compatibilité
+---
 
-Cette bibliothèque est compatible avec Angular 18, tirant parti des dernières fonctionnalités et améliorations de cette version.
+## 🤝 Contributions
 
-## Contributions
+Les contributions sont les bienvenues !
+Vous pouvez proposer des améliorations, ouvrir des issues ou créer une pull request sur GitHub.
 
-Les contributions sont les bienvenues ! Si vous souhaitez ajouter de nouvelles fonctionnalités ou améliorer les scripts existants, n'hésitez pas à ouvrir une pull request.
+---
+
+## 🛠 Auteur
+
+Développé par **BIBANG BEFENE Joseph Donovan**
+🔗 [GitHub](https://github.com/bibangjoseph/angular-cli-helper) | 📦 [npm](https://www.npmjs.com/package/angular-cli-helper)
+
+````
