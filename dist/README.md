@@ -107,16 +107,6 @@ src/
         └── routes.ts
 ```
 
-## Exemple d’Utilisation
-
-Par exemple, pour créer un composant :
-
-```bash
-npm run create-component
-```
-
-Suivez les invites pour entrer le nom du composant et du module. Le composant sera automatiquement ajouté dans le dossier `components` du module spécifié.
-
 ## Compatibilité
 
 Cette bibliothèque est compatible avec Angular 18, tirant parti des dernières fonctionnalités et améliorations de cette version.
