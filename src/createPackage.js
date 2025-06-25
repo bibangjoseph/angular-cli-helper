@@ -15,7 +15,7 @@ async function createPackage() {
     ]);
 
     // Création des dossiers pour le package
-    const modulePath = path.join(process.cwd(), 'src', 'app', moduleName);
+    const modulePath = path.join(process.cwd(), 'src', 'app', 'features', moduleName);
     shelljs.mkdir('-p', `${modulePath}/views`);
     shelljs.mkdir('-p', `${modulePath}/models`);
     shelljs.mkdir('-p', `${modulePath}/components`);

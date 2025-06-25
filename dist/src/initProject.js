@@ -26,12 +26,20 @@ function initProject() {
 
 function replaceAppComponent(basePath) {
     const appComponentDir = basePath;
-    const appTsPath = path.join(appComponentDir, 'app.ts');
+
     const appHtmlPath = path.join(appComponentDir, 'app.html');
     const appCssPath = path.join(appComponentDir, 'app.css');
     const appScssPath = path.join(appComponentDir, 'app.scss');
     const appOldTsPath = path.join(appComponentDir, 'app.ts');
 
+    [appHtmlPath, appCssPath, appScssPath, appOldTsPath].forEach(file => {
+        if (fs.existsSync(file)) {
+            fs.rmSync(file);
+            console.log(`🗑️ Fichier supprimé : ${path.basename(file)}`);
+        }
+    });
+
+    const appTsPath = path.join(appComponentDir, 'app.ts');
     const appTsContent = `
             import { Component } from '@angular/core';
             import { RouterOutlet } from '@angular/router';
@@ -46,13 +54,6 @@ function replaceAppComponent(basePath) {
 
     fs.writeFileSync(appTsPath, appTsContent);
     console.log('✅ Mise à jour du fichier app.ts.');
-
-    [appHtmlPath, appCssPath, appScssPath, appOldTsPath].forEach(file => {
-        if (fs.existsSync(file)) {
-            fs.rmSync(file);
-            console.log(`🗑️ Fichier supprimé : ${path.basename(file)}`);
-        }
-    });
 }
 
 initProject();
