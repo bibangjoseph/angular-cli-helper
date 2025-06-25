@@ -27,8 +27,8 @@ async function createComponent() {
 
     // Déterminer le chemin cible
     const relativePath = isGlobal
-        ? `shared/components/${componentName}`
-        : `features/${moduleName}/components/${componentName}`;
+        ? `shared/components/${componentName}.component`
+        : `features/${moduleName}/components/${componentName}.component`;
 
     const componentPath = path.join('src', 'app', relativePath);
 
