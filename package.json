@@ -4,7 +4,7 @@
     "main": "index.js",
     "description": "A CLI helper for managing Angular projects with commands to create components, services, models, pages, and packages.",
     "bin": {
-        "init-project": ".src/initProject.ts",
+        "init-project": "./src/initProject.ts",
         "create-component": "./src/createComponent.js",
         "create-service": "./src/createService.js",
         "create-model": "./src/createModel.js",

@@ -1,9 +1,6 @@
-Voici le contenu complet prêt à être collé dans ton fichier `README.md` :
-
-
 # Angular CLI Helper
 
-**Angular CLI Helper** est une bibliothèque CLI conçue pour simplifier la gestion des projets Angular, compatible avec Angular 17+ (standalone). Elle facilite la création de packages, composants, services, modèles et pages au sein d'une structure modulaire, optimisant ainsi le flux de travail des développeurs.
+**Angular CLI Helper** est une bibliothèque CLI conçue pour simplifier la gestion des projets Angular, compatible avec Angular 17+ (standalone). Elle facilite la création de packages, composants, services, modèles, pages et l'initialisation d'une structure de projet modulaire, optimisant ainsi le flux de travail des développeurs.
 
 ---
 
@@ -11,7 +8,7 @@ Voici le contenu complet prêt à être collé dans ton fichier `README.md` :
 
 | Version de la librairie | Version Angular recommandée | Architecture utilisée         |
 |--------------------------|-----------------------------|-------------------------------|
-| `^3.0.0`                 | Angular 20+                 | Standalone / `features/`      |
+| `^3.0.0+`                 | Angular 20+                 | Standalone / `features/` + `init-project` |
 | `^2.x`                   | Angular 16+                 | Modules classiques             |
 | `^1.x`                   | Angular <= 15               | Modules classiques             |
 
@@ -33,7 +30,8 @@ Ensuite, ajoutez les commandes personnalisées dans la section `scripts` de votr
     "create-service": "create-service",
     "create-model": "create-model",
     "create-package": "create-package",
-    "create-page": "create-page"
+    "create-page": "create-page",
+    "init-project": "init-project"
 }
 ```
 
@@ -43,7 +41,47 @@ Une fois configuré, vous pouvez exécuter les commandes en utilisant `npm run`.
 
 ## ⚙️ Commandes disponibles
 
-### 1. Créer un package
+### 1. Initialiser un projet (`init-project`)
+
+```bash
+npm run init-project
+```
+
+> ✅ **Disponible uniquement avec Angular 20+**
+
+Cette commande permet d’amorcer un projet Angular structuré en créant automatiquement les dossiers standards :
+
+```
+src/
+└── app/
+    ├── core/        # Services globaux, interceptors, guards
+    ├── shared/      # Composants réutilisables, directives, pipes
+    ├── features/    # Modules fonctionnels (auth, dashboard, etc.)
+    ├── layout/      # Layouts principaux
+    └── app.routes.ts
+```
+
+Elle effectue également les opérations suivantes :
+
+* Génère un `app.routes.ts` si absent
+* Supprime les fichiers `app.html`, `.css` ou `.scss`
+* Modifie le fichier `app.ts` :
+
+```ts
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+
+@Component({
+  selector: 'app-root',
+  imports: [RouterOutlet],
+  template: '<router-outlet />',
+})
+export class App {}
+```
+
+---
+
+### 2. Créer un package
 
 ```bash
 npm run create-package
@@ -54,11 +92,9 @@ npm run create-package
   * **Nom du package** : Nom du package à créer.
   * **Module** : Nom du module auquel le package est lié.
 
-Cette commande crée une structure complète dans `features/<module>/` avec les dossiers `components`, `views`, `models`, `services`, et met à jour automatiquement `app.routes.ts`.
-
 ---
 
-### 2. Créer un composant
+### 3. Créer un composant
 
 ```bash
 npm run create-component
@@ -71,7 +107,7 @@ npm run create-component
 
 ---
 
-### 3. Créer un service
+### 4. Créer un service
 
 ```bash
 npm run create-service
@@ -84,7 +120,7 @@ npm run create-service
 
 ---
 
-### 4. Créer un modèle
+### 5. Créer un modèle
 
 ```bash
 npm run create-model
@@ -97,7 +133,7 @@ npm run create-model
 
 ---
 
-### 5. Créer une page
+### 6. Créer une page
 
 ```bash
 npm run create-page
@@ -115,13 +151,11 @@ npm run create-page
 ```
 src/
 └── app/
-    └── features/
-        └── <nom-du-module>/
-            ├── components/
-            ├── services/
-            ├── models/
-            ├── views/
-            └── routes.ts
+    ├── core/
+    ├── shared/
+    ├── features/
+    ├── layout/
+    └── app.routes.ts
 ```
 
 ---

@@ -1,9 +1,10 @@
 {
     "name": "angular-cli-helper",
-    "version": "3.1.0",
+    "version": "3.2.0",
     "main": "index.js",
     "description": "A CLI helper for managing Angular projects with commands to create components, services, models, pages, and packages.",
     "bin": {
+        "init-project": ".src/initProject.ts",
         "create-component": "./src/createComponent.js",
         "create-service": "./src/createService.js",
         "create-model": "./src/createModel.js",
