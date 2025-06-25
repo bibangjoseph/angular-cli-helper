@@ -35,6 +35,27 @@ function initProject() {
     }
 
     replaceAppComponent(basePath);
+    generateMainLayout()
+}
+
+function generateMainLayout() {
+    const layoutPath = path.join(process.cwd(), 'src', 'app', 'layout', 'main-layout');
+
+    // Vérifie si le composant existe déjà
+    const componentTsPath = path.join(layoutPath, 'main-layout.ts');
+    if (fs.existsSync(componentTsPath)) {
+        console.log('ℹ️ Le composant main-layout existe déjà.');
+        return;
+    }
+
+    // Génère le composant avec Angular CLI
+    const result = shelljs.exec('ng g c layout/main-layout --skip-tests');
+
+    if (result.code === 0) {
+        console.log('✅ Composant main-layout généré avec succès via Angular CLI.');
+    } else {
+        console.error('❌ Échec de la génération du composant main-layout. Assurez-vous que Angular CLI est installé.');
+    }
 }
 
 
