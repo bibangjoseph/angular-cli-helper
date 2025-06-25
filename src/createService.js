@@ -13,7 +13,7 @@ async function createService() {
         // Création du dossier si nécessaire
         shelljs.mkdir('-p', targetPath);
 
-        shelljs.exec(`ng g s core/services/${serviceName}.service`);
+        shelljs.exec(`ng g s core/services/${serviceName}.service --skip-tests`);
         console.info(`✅ Le service ${serviceName} a été créé avec succès dans core/services.`);
     } catch (error) {
         console.error("❌ Une erreur est survenue :", error);

@@ -8,13 +8,13 @@ async function createPage() {
     try {
         const pageName = await askPageName(); // Demande du nom du composant
         const moduleName = await askModuleName(); // Demande du nom du module
-        const modulePath = path.join(process.cwd(), 'src', 'app', moduleName);
+        const modulePath = path.join(process.cwd(), 'src', 'app', 'features', moduleName);
 
         if (fs.existsSync(modulePath)) {
             shelljs.exec(`ng g c features/${moduleName}/views/${pageName}.page`);
             console.info(`Le composant ${pageName} a été créé avec succès dans le module ${moduleName}.`);
         } else {
-            console.error(`Erreur : le module "${moduleName}" n'existe pas dans src/app.`);
+            console.error(`Erreur : le module "${moduleName}" n'existe pas dans src/app/features.`);
         }
     } catch (error) {
         console.error("Une erreur est survenue :", error);

@@ -9,12 +9,12 @@ async function createModel() {
     try {
         const modelName = await askModelName();
         const moduleName = await askModuleName();
-        const modulePath = path.join(process.cwd(), 'src', 'app', moduleName);
+        const modulePath = path.join(process.cwd(), 'src', 'app', 'features', moduleName);
 
         if (moduleExists(modulePath)) {
             generateModel(moduleName, modelName);
         } else {
-            console.error(`Erreur : le module "${moduleName}" n'existe pas dans src/app.`);
+            console.error(`Erreur : le module "${moduleName}" n'existe pas dans src/app/features.`);
         }
     } catch (error) {
         console.error("Une erreur est survenue :", error);

@@ -25,30 +25,26 @@ async function createComponent() {
         }
     ]);
 
-    const basePath = isGlobal
-        ? path.join('src', 'app', 'shared', 'components')
-        : path.join('src', 'app', 'features', moduleName, 'components');
+    // Déterminer le chemin cible
+    const relativePath = isGlobal
+        ? `shared/components/${componentName}`
+        : `features/${moduleName}/components/${componentName}`;
 
-    shelljs.mkdir('-p', basePath);
-    const fullPath = path.join(basePath, `${componentName}.component.ts`);
-    const className = `${capitalize(componentName)}Component`;
+    const componentPath = path.join('src', 'app', relativePath);
 
-    const content = `import { Component } from '@angular/core';
+    if (fs.existsSync(path.join(componentPath, `${componentName}.component.ts`))) {
+        console.log(`❌ Le composant ${componentName} existe déjà à l'emplacement : ${componentPath}`);
+        return;
+    }
 
-@Component({
-  selector: 'app-${componentName}',
-  standalone: true,
-  template: \`<p>${componentName} works!</p>\`,
-})
-export class ${className} { }
-`;
+    // Générer le composant avec Angular CLI
+    const result = shelljs.exec(`ng g c ${relativePath}`);
 
-    fs.writeFileSync(fullPath, content);
-    console.log(`✅ Composant créé : ${fullPath}`);
-}
-
-function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
+    if (result.code === 0) {
+        console.log(`✅ Composant ${componentName} généré avec succès dans ${componentPath}`);
+    } else {
+        console.error(`❌ Échec de la génération du composant. Vérifiez que vous êtes dans un projet Angular CLI.`);
+    }
 }
 
 createComponent();
