@@ -8,7 +8,7 @@
 
 | Version de la librairie | Version Angular recommandée | Architecture utilisée                    |
 |-------------------------|-----------------------------|------------------------------------------|
-| `^3.x+`                 | Angular 20+                 | Standalone + `features/` + `init-project` |
+| `^4.x+`                 | Angular 20+                 | Standalone + `features/` + `init-project` |
 | `^2.x`                  | Angular 16+                 | Modules classiques                        |
 | `^1.x`                  | Angular <= 15               | Modules classiques                        |
 
