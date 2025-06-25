@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import shelljs from 'shelljs';
 
-function createFolderStructure() {
+function initProject() {
     const basePath = path.join(process.cwd(), 'src', 'app');
     const folders = ['core', 'shared', 'features', 'layout'];
 
@@ -55,4 +55,4 @@ function replaceAppComponent(basePath) {
     });
 }
 
-createFolderStructure();
+initProject();
