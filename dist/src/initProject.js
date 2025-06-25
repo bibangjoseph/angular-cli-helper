@@ -4,21 +4,35 @@ import path from 'path';
 import shelljs from 'shelljs';
 
 function initProject() {
-    const basePath = path.join(process.cwd(), 'src', 'app');
-    const folders = ['core', 'shared', 'features', 'layout'];
-
     console.log('🛠 Création de la structure de base du projet...');
 
-    folders.forEach(folder => {
-        const fullPath = path.join(basePath, folder);
-        if (!fs.existsSync(fullPath)) {
-            shelljs.mkdir('-p', fullPath);
-            fs.writeFileSync(path.join(fullPath, 'index.ts'), `// Exports de ${folder}`);
-            console.log(`📁 Dossier créé : src/app/${folder}`);
-        } else {
-            console.log(`✅ Le dossier src/app/${folder} existe déjà.`);
+    const basePath = path.join(process.cwd(), 'src', 'app');
+    const folders = {
+        core: ['services', 'guards', 'interceptors'],
+        shared: ['components', 'directives', 'pipes'],
+        layout: ['main-layout'],
+        features: []
+    };
+
+
+    for (const [parent, children] of Object.entries(folders)) {
+        const parentPath = path.join(basePath, parent);
+
+        if (!fs.existsSync(parentPath)) {
+            shelljs.mkdir('-p', parentPath);
+            console.log(`📁 Dossier créé : src/app/${parent}`);
         }
-    });
+
+        if (children.length > 0) {
+            children.forEach(child => {
+                const childPath = path.join(parentPath, child);
+                if (!fs.existsSync(childPath)) {
+                    shelljs.mkdir('-p', childPath);
+                    console.log(`📁 Dossier créé : src/app/${parent}/${child}`);
+                }
+            });
+        }
+    }
 
     replaceAppComponent(basePath);
 }

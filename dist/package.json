@@ -1,6 +1,6 @@
 {
     "name": "angular-cli-helper",
-    "version": "3.7.0",
+    "version": "4.0.0",
     "main": "index.js",
     "description": "A CLI helper for managing Angular projects with commands to create components, services, models, pages, and packages.",
     "bin": {
@@ -9,7 +9,10 @@
         "create-service": "./src/createService.js",
         "create-model": "./src/createModel.js",
         "create-page": "./src/createPage.js",
-        "create-package": "./src/createPackage.js"
+        "create-package": "./src/createPackage.js",
+        "create-guard": "./src/createGuard.js",
+        "create-directive": "./src/createDirective.js",
+        "create-pipe": "./src/createPipe.js"
     },
     "scripts": {
         "build": "mkdir -p dist && cp -r src dist && cp package.json dist && cp README.md dist",

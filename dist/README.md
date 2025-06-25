@@ -1,100 +1,76 @@
 # Angular CLI Helper
 
-**Angular CLI Helper** est une bibliothèque CLI conçue pour simplifier la gestion des projets Angular, compatible avec Angular 17+ (standalone). Elle facilite la création de packages, composants, services, modèles, pages et l'initialisation d'une structure de projet modulaire, optimisant ainsi le flux de travail des développeurs.
+**Angular CLI Helper** est une bibliothèque CLI conçue pour simplifier la gestion des projets Angular standalone (Angular 17+). Elle permet de générer rapidement des composants, services, modèles, pages, packages, guards, directives, pipes, et même d'initialiser une structure de projet professionnelle.
 
 ---
 
 ## 📦 Compatibilité des versions
 
-| Version de la librairie | Version Angular recommandée | Architecture utilisée         |
-|-------------------------|-----------------------------|-------------------------------|
-| `^3.x+`                 | Angular 20+                 | Standalone / `features/` + `init-project` |
-| `^2.x`                  | Angular 16+                 | Modules classiques             |
-| `^1.x`                  | Angular <= 15               | Modules classiques             |
+| Version de la librairie | Version Angular recommandée | Architecture utilisée                    |
+|-------------------------|-----------------------------|------------------------------------------|
+| `^3.x+`                 | Angular 20+                 | Standalone + `features/` + `init-project` |
+| `^2.x`                  | Angular 16+                 | Modules classiques                        |
+| `^1.x`                  | Angular <= 15               | Modules classiques                        |
 
 ---
 
 ## 🚀 Installation
 
-Installez la bibliothèque en tant que dépendance de développement avec la commande suivante :
-
 ```bash
 npm install angular-cli-helper --save-dev
 ````
 
-Ensuite, ajoutez les commandes personnalisées dans la section `scripts` de votre fichier `package.json` pour pouvoir les exécuter directement avec `npm run` :
+Ajoutez les scripts dans votre `package.json` :
 
 ```json
-"scripts" : {
-    "create-component": "create-component",
-    "create-service": "create-service",
-    "create-model": "create-model",
-    "create-package": "create-package",
-    "create-page": "create-page",
-    "init-project": "init-project"
+"scripts": {
+  "init-project": "init-project",
+  "create-component": "create-component",
+  "create-service": "create-service",
+  "create-model": "create-model",
+  "create-package": "create-package",
+  "create-page": "create-page",
+  "create-guard": "create-guard",
+  "create-directive": "create-directive",
+  "create-pipe": "create-pipe"
 }
 ```
 
-Une fois configuré, vous pouvez exécuter les commandes en utilisant `npm run`.
+Puis exécutez avec `npm run <commande>`.
 
 ---
 
 ## ⚙️ Commandes disponibles
 
-### 1. Initialiser un projet (`init-project`)
+### 1. `init-project` (Angular 20+)
 
 ```bash
 npm run init-project
 ```
 
-> ✅ **Disponible uniquement avec Angular 20+**
-
-Cette commande permet d’amorcer un projet Angular structuré en créant automatiquement les dossiers standards :
+Crée automatiquement la structure suivante :
 
 ```
-src/
-└── app/
-    ├── core/        # Services globaux, interceptors, guards
-    ├── shared/      # Composants réutilisables, directives, pipes
-    ├── features/    # Modules fonctionnels (auth, dashboard, etc.)
-    ├── layout/      # Layouts principaux
-    └── app.routes.ts
+src/app/
+├── core/
+│   ├── services/
+│   ├── guards/
+│   └── interceptors/
+├── shared/
+│   ├── components/
+│   ├── directives/
+│   └── pipes/
+├── layout/
+│   ├── main-layout/
+├── features/
+└── app.routes.ts
 ```
 
-Elle effectue également les opérations suivantes :
-
-* Génère un `app.routes.ts` si absent
-* Supprime les fichiers `app.html`, `.css` ou `.scss`
-* Modifie le fichier `app.ts` :
-
-```ts
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-
-@Component({
-  selector: 'app-root',
-  imports: [RouterOutlet],
-  template: '<router-outlet />',
-})
-export class App {}
-```
+Il modifie également `app.ts` et supprime les anciens fichiers `app.html`, `.css`, `.scss`.
 
 ---
 
-### 2. Créer un package
-
-```bash
-npm run create-package
-```
-
-* **Prompts** :
-
-  * **Nom du package** : Nom du package à créer.
-  * **Module** : Nom du module auquel le package est lié.
-
----
-
-### 3. Créer un composant
+### 2. `create-component`
 
 ```bash
 npm run create-component
@@ -102,25 +78,29 @@ npm run create-component
 
 * **Prompts** :
 
-  * **Nom du composant** : Nom du composant à créer.
-  * **Module** : Nom du module dans lequel le composant sera ajouté.
+  * Nom du composant
+  * Ce composant est-il global (shared) ?
+
+    * ✅ Oui → `shared/components/`
+    * ❌ Non → `features/<module>/components/`
 
 ---
 
-### 4. Créer un service
+### 3. `create-service`
 
 ```bash
 npm run create-service
 ```
 
-* **Prompts** :
+* **Prompt** :
 
-  * **Nom du service** : Nom du service à créer.
-  * **Module** : Nom du module dans lequel le service sera ajouté.
+  * Nom du service
+
+> Le service est généré automatiquement dans `core/services/`.
 
 ---
 
-### 5. Créer un modèle
+### 4. `create-model`
 
 ```bash
 npm run create-model
@@ -128,12 +108,12 @@ npm run create-model
 
 * **Prompts** :
 
-  * **Nom du modèle** : Nom du modèle à créer.
-  * **Module** : Nom du module dans lequel le modèle sera ajouté.
+  * Nom du modèle
+  * Module cible (`features/<module>/models/`)
 
 ---
 
-### 6. Créer une page
+### 5. `create-page`
 
 ```bash
 npm run create-page
@@ -141,35 +121,76 @@ npm run create-page
 
 * **Prompts** :
 
-  * **Nom de la page** : Nom de la page à créer.
-  * **Module** : Nom du module dans lequel la page sera ajoutée.
+  * Nom de la page
+  * Module cible (`features/<module>/views/`)
 
 ---
 
-## 🧱 Structure de dossiers générée
+### 6. `create-package`
 
+```bash
+npm run create-package
 ```
-src/
-└── app/
-    ├── core/
-    ├── shared/
-    ├── features/
-    ├── layout/
-    └── app.routes.ts
+
+* **Prompts** :
+
+  * Nom du package
+
+> Crée un ensemble `components/`, `views/`, `models/`, `routes.ts` + mise à jour de `app.routes.ts`.
+
+---
+
+### 7. `create-guard`
+
+```bash
+npm run create-guard
 ```
+
+* **Prompt** :
+
+  * Nom du guard
+
+> 📁 Généré dans `core/guards/`.
+
+---
+
+### 8. `create-directive`
+
+```bash
+npm run create-directive
+```
+
+* **Prompt** :
+
+  * Nom de la directive
+
+> 📁 Générée dans `shared/directives/`.
+
+---
+
+### 9. `create-pipe`
+
+```bash
+npm run create-pipe
+```
+
+* **Prompt** :
+
+  * Nom du pipe
+
+> 📁 Généré dans `shared/pipes/`.
 
 ---
 
 ## 🤝 Contributions
 
 Les contributions sont les bienvenues !
-Vous pouvez proposer des améliorations, ouvrir des issues ou créer une pull request sur GitHub.
+Proposez vos idées, ouvrez des issues ou envoyez des pull requests sur GitHub.
 
 ---
 
 ## 🛠 Auteur
 
 Développé par **BIBANG BEFENE Joseph Donovan**
-🔗 [GitHub](https://github.com/bibangjoseph/angular-cli-helper) | 📦 [npm](https://www.npmjs.com/package/angular-cli-helper)
-
-````
+🔗 [GitHub](https://github.com/bibangjoseph/angular-cli-helper)
+📦 [npm](https://www.npmjs.com/package/angular-cli-helper)

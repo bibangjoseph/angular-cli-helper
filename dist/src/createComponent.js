@@ -1,45 +1,54 @@
 #!/usr/bin/env node
 import inquirer from 'inquirer';
 import shelljs from 'shelljs';
-import fs from 'fs';
 import path from 'path';
+import fs from 'fs';
 
 async function createComponent() {
-    try {
-        const componentName = await askComponentName(); // Demande du nom du composant
-        const moduleName = await askModuleName(); // Demande du nom du module
-        const modulePath = path.join(process.cwd(), 'src', 'app', moduleName);
-
-        if (fs.existsSync(modulePath)) {
-            shelljs.exec(`ng g c features/${moduleName}/components/${componentName}.component`);
-            console.info(`Le composant ${componentName} a été créé avec succès dans le module ${moduleName}.`);
-        } else {
-            console.error(`Erreur : le module "${moduleName}" n'existe pas dans src/app.`);
-        }
-    } catch (error) {
-        console.error("Une erreur est survenue :", error);
-    }
-}
-
-// Demande du nom du composant
-function askComponentName() {
-    return inquirer.prompt([
+    const { componentName, isGlobal, moduleName } = await inquirer.prompt([
         {
             name: 'componentName',
-            message: 'Quel est le nom du composant ?'
+            message: 'Nom du composant :',
+            validate: input => input ? true : 'Le nom est requis.',
         },
-    ]).then(answers => answers.componentName);
-}
-
-// Demande du nom du module
-function askModuleName() {
-    return inquirer.prompt([
+        {
+            type: 'confirm',
+            name: 'isGlobal',
+            message: 'Est-ce un composant global (shared) ?',
+            default: false
+        },
         {
             name: 'moduleName',
-            message: 'Dans quel module ?'
-        },
-    ]).then(answers => answers.moduleName);
+            message: 'Nom du module :',
+            when: answers => !answers.isGlobal,
+            validate: input => input ? true : 'Le nom du module est requis.',
+        }
+    ]);
+
+    const basePath = isGlobal
+        ? path.join('src', 'app', 'shared', 'components')
+        : path.join('src', 'app', 'features', moduleName, 'components');
+
+    shelljs.mkdir('-p', basePath);
+    const fullPath = path.join(basePath, `${componentName}.component.ts`);
+    const className = `${capitalize(componentName)}Component`;
+
+    const content = `import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-${componentName}',
+  standalone: true,
+  template: \`<p>${componentName} works!</p>\`,
+})
+export class ${className} { }
+`;
+
+    fs.writeFileSync(fullPath, content);
+    console.log(`✅ Composant créé : ${fullPath}`);
 }
 
-// Exécute la fonction principale
+function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 createComponent();
