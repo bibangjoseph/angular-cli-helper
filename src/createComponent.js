@@ -5,11 +5,15 @@ import path from 'path';
 import shelljs from 'shelljs';
 
 function formatFolderName(name) {
-    return name.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '') + '-component';
+    return name.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
 }
 
-function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
+function toPascalCase(str) {
+    return str
+        .replace(/[-_]+/g, ' ')
+        .replace(/\s(.)/g, s => s.toUpperCase())
+        .replace(/\s/g, '')
+        .replace(/^(.)/, s => s.toUpperCase());
 }
 
 async function createComponent() {
@@ -40,7 +44,7 @@ async function createComponent() {
 
     shelljs.mkdir('-p', basePath);
 
-    const className = `${capitalize(componentName)}Component`;
+    const className = `${toPascalCase(componentName)}Component`;
     const selector = `app-${folderName}`;
     const tsPath = path.join(basePath, `${componentName}.component.ts`);
     const htmlPath = path.join(basePath, `${componentName}.component.html`);

@@ -1,11 +1,15 @@
 #!/usr/bin/env node
 import inquirer from 'inquirer';
-import shelljs from 'shelljs';
 import fs from 'fs';
 import path from 'path';
+import shelljs from 'shelljs';
 
 function formatFolderName(name) {
     return name.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '') + '-component';
+}
+
+function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 async function createComponent() {
@@ -29,40 +33,39 @@ async function createComponent() {
         }
     ]);
 
-    const folderName = formatFolderName(componentName);
+    const folderName = formatFolderName(componentName); // e.g. item-component
     const basePath = isGlobal
         ? path.join('src', 'app', 'shared', 'components', folderName)
         : path.join('src', 'app', 'features', moduleName, 'components', folderName);
 
-    const genPath = `${basePath}/${folderName}`; // Ex: item-component/item-component
     shelljs.mkdir('-p', basePath);
 
-    const execResult = shelljs.exec(
-        `ng g c ${genPath} --standalone --skip-tests`
-    );
-
-    if (execResult.code !== 0) {
-        console.error('❌ Erreur lors de la génération du composant.');
-        return;
-    }
-
-    // Renommer les fichiers générés
-    const fromPrefix = path.join(basePath, folderName);
-    const toPrefix = path.join(basePath, componentName);
-
-    fs.renameSync(`${fromPrefix}.component.ts`, `${toPrefix}.component.ts`);
-    fs.renameSync(`${fromPrefix}.component.html`, `${toPrefix}.component.html`);
-    fs.renameSync(`${fromPrefix}.component.scss`, `${toPrefix}.component.scss`);
-    fs.rmSync(fromPrefix, { force: true }); // Supprime le dossier intermédiaire
-
-    // Modifier le selector dans le .ts
-    const tsPath = `${toPrefix}.component.ts`;
-    let tsContent = fs.readFileSync(tsPath, 'utf8');
+    const className = `${capitalize(componentName)}Component`;
     const selector = `app-${folderName}`;
-    tsContent = tsContent.replace(/selector:\s*'[^']+'/i, `selector: '${selector}'`);
-    fs.writeFileSync(tsPath, tsContent, 'utf8');
+    const tsPath = path.join(basePath, `${componentName}.component.ts`);
+    const htmlPath = path.join(basePath, `${componentName}.component.html`);
+    const scssPath = path.join(basePath, `${componentName}.component.scss`);
 
-    console.log(`✅ Composant créé avec succès : ${tsPath}`);
+    // Create .ts file
+    const tsContent = `import { Component } from '@angular/core';
+
+@Component({
+  selector: '${selector}',
+  standalone: true,
+  templateUrl: './${componentName}.component.html',
+  styleUrls: ['./${componentName}.component.scss']
+})
+export class ${className} {}
+`;
+    fs.writeFileSync(tsPath, tsContent);
+
+    // Create .html file
+    fs.writeFileSync(htmlPath, `<p>${selector} works!</p>`);
+
+    // Create .scss file
+    fs.writeFileSync(scssPath, `/* Styles pour ${selector} */`);
+
+    console.log(`✅ Composant standalone généré dans ${basePath}`);
 }
 
 createComponent();
