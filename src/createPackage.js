@@ -41,7 +41,7 @@ function capitalize(str) {
 // Fonction pour mettre à jour le fichier app.routes.ts
 function updateAppRoutes(moduleName) {
     const appRoutesPath = path.join(process.cwd(), 'src', 'app', 'app.routes.ts');
-    const importLine = `import { ${moduleName.toUpperCase()}_ROUTES } from './${moduleName}/routes';`;
+    const importLine = `import { ${moduleName.toUpperCase()}_ROUTES } from './features/${moduleName}/routes';`;
     const routeLine = `    ...${moduleName.toUpperCase()}_ROUTES,`;
 
     if (fs.existsSync(appRoutesPath)) {
