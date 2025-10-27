@@ -54,7 +54,7 @@ function createModelFile(modulePath, modelName) {
 
     const kebabName = toKebabCase(modelName);
     const pascalName = toPascalCase(modelName);
-    const modelFilePath = path.join(modelsPath, `${kebabName}.model.ts`);
+    const modelFilePath = path.join(modelsPath, `${kebabName}.ts`);
 
     // Vérifier si le modèle existe déjà
     if (fs.existsSync(modelFilePath)) {
