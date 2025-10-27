@@ -133,16 +133,16 @@ async function createModel() {
         if (success) {
             const kebabName = toKebabCase(modelName);
             const pascalName = toPascalCase(modelName);
-            const modelPath = path.join(modulePath, 'models', `${kebabName}.model.ts`);
+            const modelPath = path.join(modulePath, 'models', `${kebabName}.ts`);
 
             console.log(`\n✅ Modèle "${modelName}" créé avec succès!`);
             console.log(`📁 Emplacement: ${modelPath}\n`);
 
             console.log('💡 Utilisation:');
-            console.log(`   import { ${pascalName} } from './models/${kebabName}.model';\n`);
+            console.log(`   import { ${pascalName} } from './models/${kebabName}';\n`);
 
             console.log('📝 N\'oubliez pas de définir les propriétés de votre interface!');
-            console.log(`   Éditez: features/${moduleName}/models/${kebabName}.model.ts\n`);
+            console.log(`   Éditez: features/${moduleName}/models/${kebabName}.ts\n`);
         }
 
     } catch (error) {

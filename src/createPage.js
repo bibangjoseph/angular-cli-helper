@@ -49,7 +49,8 @@ function updateModuleRoutes(modulePath, moduleName, pageName, folderName, classN
         const routePath = toKebabCase(folderName);
 
         // Créer l'import lazy loading
-        const lazyLoadImport = `            {
+        const lazyLoadImport = `
+            ,{
                 path: '${routePath}',
                 loadComponent: () => import('./views/${folderName}/${pageName}.page').then(m => m.${className})
             }`;
@@ -63,7 +64,7 @@ function updateModuleRoutes(modulePath, moduleName, pageName, folderName, classN
         // Vérifier si MainLayout est déjà importé
         if (!routesContent.includes('MainLayout')) {
             // Ajouter l'import de MainLayout
-            const importStatement = "import { MainLayout } from '../../layout/main-layout/main-layout.component';\n";
+            const importStatement = "import { MainLayout } from '../../layout/main-layout/main-layout';\n";
             routesContent = importStatement + routesContent;
         }
 
@@ -294,15 +295,6 @@ export class ${className} implements OnInit {
     <div class="content">
       <h1>${toPascalCase(pageName)}</h1>
       <p>${selector} works!</p>
-
-      <!-- Affichage des erreurs backend (optionnel) -->
-      @if (backendErrors() && Object.keys(backendErrors()).length > 0) {
-        <div class="errors">
-          @for (error of Object.values(backendErrors()); track error) {
-            <p class="error-message">{{ error[0] }}</p>
-          }
-        </div>
-      }
     </div>
   }
 </div>
@@ -310,50 +302,8 @@ export class ${className} implements OnInit {
     fs.writeFileSync(htmlFile, htmlContent);
 
     // Créer le fichier .scss avec styles de base
-    const scssContent = `.${folderName}-container {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-
-  .loader {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 200px;
-    
-    p {
-      font-size: 16px;
-      color: #666;
-    }
-  }
-
-  .content {
-    h1 {
-      font-size: 24px;
-      margin-bottom: 16px;
-      color: #333;
-    }
-
-    p {
-      color: #666;
-      line-height: 1.6;
-    }
-  }
-
-  .errors {
-    margin-top: 16px;
-    padding: 12px;
-    background-color: #fee;
-    border-left: 4px solid #f44;
-    border-radius: 4px;
-
-    .error-message {
-      color: #d32f2f;
-      margin: 4px 0;
-      font-size: 14px;
-    }
-  }
-}
+    const scssContent = `
+    .${folderName}-container {}
 `;
     fs.writeFileSync(scssFile, scssContent);
 

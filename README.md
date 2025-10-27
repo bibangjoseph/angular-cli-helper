@@ -30,23 +30,6 @@
 ---
 
 ## 🚀 Installation
-
-### Installation globale (recommandée)
-```bash
-npm install -g angular-cli-helper
-
-```
-
-Puis utilisez directement les commandes :
-```bash
-init-project
-g:component
-g:service
-g:page
-# etc.
-```
-
-### Installation locale (par projet)
 ```bash
 npm install angular-cli-helper --save-dev
 ```
