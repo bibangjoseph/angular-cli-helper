@@ -1,23 +1,32 @@
 {
   "name": "angular-cli-helper",
-  "version": "5.3.0",
+  "version": "4.9.0",
   "main": "index.js",
   "description": "A CLI helper for managing Angular projects with commands to create components, services, models, pages, and packages.",
   "bin": {
     "init-project": "./src/initProject.js",
-    "g:help": "./src/help.js",
-    "g:component": "./src/createComponent.js",
-    "g:service": "./src/createService.js",
-    "g:model": "./src/createModel.js",
-    "g:page": "./src/createPage.js",
-    "g:package": "./src/createPackage.js",
-    "g:guard": "./src/createGuard.js",
-    "g:directive": "./src/createDirective.js",
-    "g:pipe": "./src/createPipe.js"
+    "create-component": "./src/createComponent.js",
+    "create-service": "./src/createService.js",
+    "create-model": "./src/createModel.js",
+    "create-page": "./src/createPage.js",
+    "create-package": "./src/createPackage.js",
+    "create-guard": "./src/createGuard.js",
+    "create-directive": "./src/createDirective.js",
+    "create-pipe": "./src/createPipe.js",
+    "angular-cli-help": "./src/help.js"
   },
   "scripts": {
-    "build": "mkdir -p dist && cp -r src dist && cp package.json dist && cp README.md dist",
-    "deploy": "npm run build && cd dist && npm publish --access public"
+    "init": "init-project",
+    "g:component": "create-component",
+    "g:service": "create-service",
+    "g:model": "create-model",
+    "g:page": "create-page",
+    "g:package": "create-package",
+    "g:guard": "create-guard",
+    "g:directive": "create-directive",
+    "g:pipe": "create-pipe",
+    "g:help": "angular-cli-help",
+    "help": "angular-cli-help"
   },
   "repository": {
     "type": "git",
@@ -31,18 +40,10 @@
     "angular",
     "angular-cli",
     "cli",
-    "cli-tool",
     "generator",
     "scaffold",
-    "components",
-    "services",
-    "models",
-    "pages",
-    "packages",
     "standalone",
-    "angular-20",
-    "productivity",
-    "boilerplate"
+    "productivity"
   ],
   "author": "BIBANG BEFENE Joseph Donovan",
   "license": "MIT",
@@ -50,7 +51,6 @@
     "inquirer": "^12.0.1",
     "shelljs": "^0.8.5"
   },
-  "devDependencies": {},
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
