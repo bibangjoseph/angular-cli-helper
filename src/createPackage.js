@@ -53,7 +53,7 @@ function createPackageStructure(modulePath, moduleName) {
     const folders = [
         'views',
         'models',
-        'components',
+        'components'
     ];
 
     folders.forEach(folder => {
@@ -62,10 +62,8 @@ function createPackageStructure(modulePath, moduleName) {
             shelljs.mkdir('-p', folderPath);
             console.log(`📁 Créé: features/${moduleName}/${folder}/`);
 
-            // Créer un .gitkeep pour les dossiers vides (sauf services)
-            if (folder !== 'services') {
-                fs.writeFileSync(path.join(folderPath, '.gitkeep'), '');
-            }
+            // Créer un .gitkeep pour les dossiers vides
+            fs.writeFileSync(path.join(folderPath, '.gitkeep'), '');
         } else {
             console.log(`ℹ️  Existe déjà: features/${moduleName}/${folder}/`);
         }
@@ -171,10 +169,12 @@ function updateAppRoutes(moduleName) {
     try {
         let content = fs.readFileSync(appRoutesPath, 'utf8');
 
+        console.log('🔍 Contenu actuel de app.routes.ts détecté');
+
         const constantName = toConstantCase(moduleName);
         const importName = `${constantName}_ROUTES`;
         const importStatement = `import { ${importName} } from './features/${moduleName}/routes';`;
-        const routeSpread = `    ...${importName}`;
+        const routeSpread = `...${importName}`;
 
         // Vérifier si l'import existe déjà
         if (content.includes(importName)) {
@@ -182,84 +182,134 @@ function updateAppRoutes(moduleName) {
             return;
         }
 
+        // =============================================
         // 1. AJOUTER L'IMPORT
-        // Trouver le dernier import (chercher toutes les lignes qui commencent par "import")
-        const importLines = content.match(/^import .+;$/gm);
+        // =============================================
 
-        if (importLines && importLines.length > 0) {
-            // Trouver la position du dernier import
-            const lastImportLine = importLines[importLines.length - 1];
-            const lastImportIndex = content.lastIndexOf(lastImportLine);
-            const insertPosition = lastImportIndex + lastImportLine.length;
+        // Méthode plus robuste : chercher toutes les lignes qui commencent par "import"
+        const lines = content.split('\n');
+        let lastImportLineIndex = -1;
 
-            // Insérer le nouvel import après le dernier import
-            content =
-                content.slice(0, insertPosition) +
-                '\n' + importStatement +
-                content.slice(insertPosition);
+        // Trouver l'index de la dernière ligne d'import
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].trim().startsWith('import ')) {
+                lastImportLineIndex = i;
+            }
+        }
 
+        if (lastImportLineIndex !== -1) {
+            // Insérer après la dernière ligne d'import
+            lines.splice(lastImportLineIndex + 1, 0, importStatement);
+            content = lines.join('\n');
             console.log(`✅ Import ajouté: ${importStatement}`);
         } else {
-            // Si aucun import n'existe, ajouter au début du fichier
+            // Si aucun import trouvé, ajouter au début
             content = importStatement + '\n\n' + content;
             console.log(`✅ Import ajouté au début du fichier`);
         }
 
+        // =============================================
         // 2. AJOUTER LA ROUTE DANS LE TABLEAU
-        // Trouver le tableau de routes
-        const routesRegex = /(export const routes: Routes = \[)([\s\S]*?)(\n\];)/;
-        const routesMatch = content.match(routesRegex);
+        // =============================================
 
-        if (!routesMatch) {
-            console.error('❌ Format de app.routes.ts non reconnu.');
-            console.log('⚠️  Ajoutez manuellement dans app.routes.ts:');
+        // Trouver le tableau routes
+        const routesArrayRegex = /export\s+const\s+routes:\s*Routes\s*=\s*\[/;
+        const routesArrayMatch = content.match(routesArrayRegex);
+
+        if (!routesArrayMatch) {
+            console.error('❌ Impossible de trouver "export const routes: Routes = ["');
+            console.log('⚠️  Ajoutez manuellement:');
+            console.log(`   ${importStatement}`);
             console.log(`   ...${importName},`);
             return;
         }
 
-        let existingRoutes = routesMatch[2];
+        // Trouver la position de fermeture du tableau "];""
+        const startIndex = routesArrayMatch.index + routesArrayMatch[0].length;
+        const closingBracketRegex = /\n\];/;
+        const remainingContent = content.slice(startIndex);
+        const closingMatch = remainingContent.match(closingBracketRegex);
 
-        // Vérifier s'il y a une route wildcard (**)
-        const wildcardRegex = /\{[^}]*path:\s*['"]?\*\*['"]?[^}]*\}/;
-        const wildcardMatch = existingRoutes.match(wildcardRegex);
-
-        if (wildcardMatch) {
-            // Insérer AVANT la route wildcard
-            const wildcardIndex = existingRoutes.indexOf(wildcardMatch[0]);
-            const beforeWildcard = existingRoutes.slice(0, wildcardIndex);
-            const afterWildcard = existingRoutes.slice(wildcardIndex);
-
-            // Vérifier si on a besoin d'ajouter une virgule
-            const trimmedBefore = beforeWildcard.trimEnd();
-            const needsComma = trimmedBefore.length > 0 && !trimmedBefore.endsWith(',');
-
-            existingRoutes = beforeWildcard +
-                (needsComma ? ',' : '') +
-                '\n' + routeSpread + ',' +
-                '\n    ' + afterWildcard;
-        } else {
-            // Ajouter à la fin
-            const trimmedRoutes = existingRoutes.trimEnd();
-            const needsComma = trimmedRoutes.length > 0 && !trimmedRoutes.endsWith(',');
-
-            existingRoutes = existingRoutes +
-                (needsComma ? ',' : '') +
-                '\n' + routeSpread;
+        if (!closingMatch) {
+            console.error('❌ Impossible de trouver la fermeture du tableau routes "];');
+            return;
         }
 
-        // Remplacer le contenu du tableau de routes
-        content = content.replace(
-            routesRegex,
-            `$1${existingRoutes}\n$3`
-        );
+        const closingIndex = startIndex + closingMatch.index;
 
-        // Écrire le fichier mis à jour
+        // Extraire le contenu entre [ et ];
+        let routesContent = content.slice(startIndex, closingIndex);
+
+        // Chercher une route wildcard (**)
+        const wildcardRegex = /\{\s*path:\s*['"][*]{2}['"]/;
+        const hasWildcard = wildcardRegex.test(routesContent);
+
+        if (hasWildcard) {
+            // Trouver la position du wildcard dans routesContent
+            const wildcardMatch = routesContent.match(wildcardRegex);
+            const wildcardPos = routesContent.indexOf(wildcardMatch[0]);
+
+            // Trouver le début de l'objet wildcard (le '{' qui précède)
+            let wildcardStart = wildcardPos;
+            let braceCount = 0;
+            for (let i = wildcardPos; i >= 0; i--) {
+                if (routesContent[i] === '}') braceCount++;
+                if (routesContent[i] === '{') {
+                    if (braceCount === 0) {
+                        wildcardStart = i;
+                        break;
+                    }
+                    braceCount--;
+                }
+            }
+
+            // Insérer AVANT le wildcard
+            const beforeWildcard = routesContent.slice(0, wildcardStart);
+            const wildcardAndAfter = routesContent.slice(wildcardStart);
+
+            // Vérifier si on a besoin d'une virgule
+            const trimmedBefore = beforeWildcard.trimEnd();
+            let needsComma = false;
+
+            if (trimmedBefore.length > 0) {
+                // Vérifier le dernier caractère non-blanc
+                const lastChar = trimmedBefore[trimmedBefore.length - 1];
+                needsComma = lastChar !== ',' && lastChar !== '[';
+            }
+
+            // Construire le nouveau contenu
+            const indent = '  '; // 2 espaces d'indentation
+            routesContent = beforeWildcard +
+                (needsComma ? ',' : '') +
+                '\n' + indent + routeSpread + ',' +
+                '\n' + indent + wildcardAndAfter;
+        } else {
+            // Pas de wildcard, ajouter à la fin
+            const trimmedContent = routesContent.trimEnd();
+            let needsComma = false;
+
+            if (trimmedContent.length > 0) {
+                const lastChar = trimmedContent[trimmedContent.length - 1];
+                needsComma = lastChar !== ',' && lastChar !== '[';
+            }
+
+            const indent = '  ';
+            routesContent = routesContent +
+                (needsComma ? ',' : '') +
+                '\n' + indent + routeSpread;
+        }
+
+        // Reconstruire le fichier complet
+        content = content.slice(0, startIndex) + routesContent + content.slice(closingIndex);
+
+        // Écrire le fichier
         fs.writeFileSync(appRoutesPath, content, 'utf8');
         console.log(`✅ Route ajoutée: ...${importName}`);
-        console.log(`✅ Module "${moduleName}" ajouté à app.routes.ts avec succès!`);
+        console.log(`✅ Module "${moduleName}" ajouté à app.routes.ts avec succès!\n`);
 
     } catch (error) {
         console.error('❌ Erreur lors de la mise à jour de app.routes.ts:', error.message);
+        console.error(error.stack);
         console.log('\n⚠️  Ajoutez manuellement dans app.routes.ts:');
         console.log(`   import { ${toConstantCase(moduleName)}_ROUTES } from './features/${moduleName}/routes';`);
         console.log(`   ...${toConstantCase(moduleName)}_ROUTES,`);
@@ -318,7 +368,7 @@ async function createPackage() {
         // Mettre à jour app.routes.ts
         updateAppRoutes(moduleName);
 
-        console.log(`\n✅ Package "${moduleName}" créé avec succès!\n`);
+        console.log(`✅ Package "${moduleName}" créé avec succès!\n`);
         console.log('📂 Structure créée:');
         console.log(`
     features/${moduleName}/
@@ -332,7 +382,6 @@ async function createPackage() {
         console.log('💡 Prochaines étapes:');
         console.log(`   - Utilisez "npm run g:page" pour créer des pages dans ce module`);
         console.log(`   - Utilisez "npm run g:component" pour créer des composants`);
-        console.log(`   - Le service est disponible: features/${moduleName}/services/${moduleName}.service.ts`);
         console.log(`   - Le module est accessible via: /${moduleName}\n`);
 
     } catch (error) {
