@@ -40,7 +40,7 @@ function initProject() {
         // Générer le main-layout
         generateMainLayout();
 
-        // Remplacer app.component
+        // Remplacer app.component (AVANT la création de routes)
         replaceAppComponent(basePath);
 
         // Créer app.routes.ts si inexistant
@@ -71,9 +71,9 @@ function initProject() {
         `);
 
         console.log('💡 Prochaines étapes:');
-        console.log('   - Utilisez "create-package" pour créer un module métier');
-        console.log('   - Utilisez "create-component" pour créer des composants');
-        console.log('   - Utilisez "create-service" pour créer des services');
+        console.log('   - Utilisez "npm run g:package" pour créer un module métier');
+        console.log('   - Utilisez "npm run g:component" pour créer des composants');
+        console.log('   - Utilisez "npm run g:service" pour créer des services');
         console.log('   - Le service API est disponible dans core/services/api.service.ts');
         console.log('   - Les environnements sont configurés dans src/environments/\n');
 
@@ -384,7 +384,7 @@ export class ApiService {
   }
 
   /**
-   * GET avec pagination de Laravel
+   * GET avec pagination
    */
   getPaginate<T>(url: string): Observable<PaginatedResponse<T>> {
     this._loading.set(true);
@@ -658,21 +658,29 @@ function updateMainLayoutTemplate(layoutPath) {
 }
 
 /**
- * Remplace le fichier app.component
+ * Remplace/Modifie les fichiers app.component.*
  */
 function replaceAppComponent(basePath) {
     console.log('🔄 Mise à jour de app.component...');
 
     const appComponentDir = basePath;
 
-    const filesToDelete = [
+    // Liste des fichiers à rechercher et supprimer
+    const possibleFiles = [
         'app.component.html',
+        'app.html',
+        'app.spec.ts',
         'app.component.css',
+        'app.css',
+        'app.scss',
         'app.component.scss',
+        'app.component.sass',
+        'app.component.less',
         'app.component.spec.ts'
     ];
 
-    filesToDelete.forEach(file => {
+    // Supprimer les fichiers existants
+    possibleFiles.forEach(file => {
         const filePath = path.join(appComponentDir, file);
         if (fs.existsSync(filePath)) {
             fs.rmSync(filePath);
@@ -680,7 +688,24 @@ function replaceAppComponent(basePath) {
         }
     });
 
-    const appTsPath = path.join(appComponentDir, 'app.component.ts');
+    // Chercher app.component.ts ou app.ts
+    const possibleTsFiles = ['app.component.ts', 'app.ts'];
+    let appTsPath = null;
+
+    for (const fileName of possibleTsFiles) {
+        const filePath = path.join(appComponentDir, fileName);
+        if (fs.existsSync(filePath)) {
+            appTsPath = filePath;
+            break;
+        }
+    }
+
+    // Si aucun fichier .ts n'existe, créer app.component.ts
+    if (!appTsPath) {
+        appTsPath = path.join(appComponentDir, 'app.ts');
+    }
+
+    // Créer le nouveau contenu
     const appTsContent = `import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
@@ -690,11 +715,11 @@ import { RouterOutlet } from '@angular/router';
   imports: [RouterOutlet],
   template: '<router-outlet />'
 })
-export class AppComponent {}
+export class App {}
 `;
 
     fs.writeFileSync(appTsPath, appTsContent);
-    console.log('✅ Fichier app.component.ts mis à jour.');
+    console.log('✅ Fichier app.ts mis à jour.');
 }
 
 /**

@@ -1,56 +1,170 @@
 #!/usr/bin/env node
 import inquirer from 'inquirer';
-import shelljs from 'shelljs';
 import fs from 'fs';
 import path from 'path';
 
-// Fonction principale pour démarrer le processus de création de modèle
-async function createModel() {
-    try {
-        const modelName = await askModelName();
-        const moduleName = await askModuleName();
-        const modulePath = path.join(process.cwd(), 'src', 'app', 'features', moduleName);
-
-        if (moduleExists(modulePath)) {
-            generateModel(moduleName, modelName);
-        } else {
-            console.error(`Erreur : le module "${moduleName}" n'existe pas dans src/app/features.`);
-        }
-    } catch (error) {
-        console.error("Une erreur est survenue :", error);
-    }
+/**
+ * Formate le nom en kebab-case
+ */
+function toKebabCase(str) {
+    return str
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9\-]/g, '');
 }
 
-// Demande du nom du modèle
-function askModelName() {
-    return inquirer.prompt([
-        {
-            name: 'interfaceName',
-            message: 'Quel est le nom du modèle ?'
-        },
-    ]).then(answers => answers.interfaceName);
+/**
+ * Formate le nom en PascalCase
+ */
+function toPascalCase(str) {
+    return str
+        .replace(/[-_]+/g, ' ')
+        .replace(/\s(.)/g, s => s.toUpperCase())
+        .replace(/\s/g, '')
+        .replace(/^(.)/, s => s.toUpperCase());
 }
 
-// Demande du nom du module
-function askModuleName() {
-    return inquirer.prompt([
-        {
-            name: 'moduleName',
-            message: 'Dans quel module ?'
-        },
-    ]).then(answers => answers.moduleName);
+/**
+ * Vérifie si on est dans un projet Angular
+ */
+function isAngularProject() {
+    const angularJsonPath = path.join(process.cwd(), 'angular.json');
+    return fs.existsSync(angularJsonPath);
 }
 
-// Vérification de l'existence du module
+/**
+ * Vérifie si le module existe
+ */
 function moduleExists(modulePath) {
     return fs.existsSync(modulePath);
 }
 
-// Génération de l'interface du modèle
-function generateModel(moduleName, modelName) {
-    shelljs.exec(`ng g interface features/${moduleName}/models/${modelName}`);
-    console.info(`Le modèle ${modelName} a été créé avec succès dans le module ${moduleName}.`);
+/**
+ * Crée le fichier de modèle
+ */
+function createModelFile(modulePath, modelName) {
+    const modelsPath = path.join(modulePath, 'models');
+
+    // Créer le dossier models s'il n'existe pas
+    if (!fs.existsSync(modelsPath)) {
+        fs.mkdirSync(modelsPath, { recursive: true });
+        console.log(`📁 Créé: models/`);
+    }
+
+    const kebabName = toKebabCase(modelName);
+    const pascalName = toPascalCase(modelName);
+    const modelFilePath = path.join(modelsPath, `${kebabName}.model.ts`);
+
+    // Vérifier si le modèle existe déjà
+    if (fs.existsSync(modelFilePath)) {
+        console.error(`❌ Le modèle "${kebabName}" existe déjà dans ${modulePath}/models/`);
+        return false;
+    }
+
+    // Contenu du modèle
+    const modelContent = `export interface ${pascalName} {
+  
 }
 
-// Exécution de la fonction principale
+`;
+
+    // Écrire le fichier
+    fs.writeFileSync(modelFilePath, modelContent);
+
+    return true;
+}
+
+/**
+ * Fonction principale
+ */
+async function createModel() {
+    console.log('\n📋 Angular CLI Helper - Création de modèle\n');
+
+    try {
+        // Vérifier qu'on est dans un projet Angular
+        if (!isAngularProject()) {
+            console.error('❌ Erreur: Ce n\'est pas un projet Angular.');
+            console.error('💡 Assurez-vous d\'être dans le dossier racine d\'un projet Angular.\n');
+            process.exit(1);
+        }
+
+        // Demander le nom du modèle et du module
+        const answers = await inquirer.prompt([
+            {
+                name: 'modelName',
+                message: 'Quel est le nom du modèle ?',
+                validate: input => {
+                    if (!input) {
+                        return 'Le nom du modèle est requis.';
+                    }
+                    if (!/^[a-zA-Z0-9\s\-_]+$/.test(input)) {
+                        return 'Le nom ne peut contenir que des lettres, chiffres, espaces, tirets et underscores.';
+                    }
+                    return true;
+                },
+                filter: input => toKebabCase(input)
+            },
+            {
+                name: 'moduleName',
+                message: 'Dans quel module ?',
+                validate: input => {
+                    if (!input) {
+                        return 'Le nom du module est requis.';
+                    }
+                    return true;
+                }
+            }
+        ]);
+
+        const { modelName, moduleName } = answers;
+        const modulePath = path.join(process.cwd(), 'src', 'app', 'features', moduleName);
+
+        // Vérifier que le module existe
+        if (!moduleExists(modulePath)) {
+            console.error(`\n❌ Le module "${moduleName}" n'existe pas dans src/app/features/`);
+            console.log(`💡 Créez d'abord le module avec: npm run g:package\n`);
+            process.exit(1);
+        }
+
+        // Créer le modèle
+        const success = createModelFile(modulePath, modelName);
+
+        if (success) {
+            const kebabName = toKebabCase(modelName);
+            const pascalName = toPascalCase(modelName);
+            const modelPath = path.join(modulePath, 'models', `${kebabName}.model.ts`);
+
+            console.log(`\n✅ Modèle "${modelName}" créé avec succès!`);
+            console.log(`📁 Emplacement: ${modelPath}\n`);
+
+            console.log('💡 Utilisation:');
+            console.log(`   import { ${pascalName} } from './models/${kebabName}.model';\n`);
+
+            console.log('📝 N\'oubliez pas de définir les propriétés de votre interface!');
+            console.log(`   Éditez: features/${moduleName}/models/${kebabName}.model.ts\n`);
+        }
+
+    } catch (error) {
+        if (error.isTtyError) {
+            console.error('❌ Erreur: Terminal non interactif.');
+        } else {
+            console.error('❌ Une erreur est survenue:', error.message);
+        }
+        process.exit(1);
+    }
+}
+
+// Gestion des erreurs non capturées
+process.on('uncaughtException', (error) => {
+    console.error('\n❌ Erreur inattendue:', error.message);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason) => {
+    console.error('\n❌ Promesse rejetée:', reason);
+    process.exit(1);
+});
+
+// Exécution
 createModel();
