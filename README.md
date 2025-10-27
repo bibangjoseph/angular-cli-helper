@@ -21,11 +21,12 @@
 
 ## 📦 Compatibilité des versions
 
-| Version de la librairie | Version Angular recommandée | Architecture utilisée                    |
-|-------------------------|-----------------------------|------------------------------------------|
-| `^4.x+`                 | Angular 17 - 20+            | Standalone + `features/` + Service API   |
-| `^2.x`                  | Angular 16+                 | Modules classiques                        |
-| `^1.x`                  | Angular <= 15               | Modules classiques                        |
+| Version de la librairie | Version Angular recommandée | Architecture utilisée                  |
+|-------------------------|-----------------------------|----------------------------------------|
+| `^5.x+`                 | Angular 17 - 20+            | Standalone + `features/` + Service API |
+| `^4.x+`                 | Angular 17 - 20+            | Modules classiques                     |
+| `^2.x`                  | Angular 16+                 | Modules classiques                     |
+| `^1.x`                  | Angular <= 15               | Modules classiques                     |
 
 ---
 
