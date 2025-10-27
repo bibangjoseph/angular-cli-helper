@@ -40,9 +40,9 @@ npm install -g angular-cli-helper
 Puis utilisez directement les commandes :
 ```bash
 init-project
-create-component
-create-service
-create-page
+g:component
+g:service
+g:page
 # etc.
 ```
 
