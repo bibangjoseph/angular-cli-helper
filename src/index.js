@@ -8,5 +8,6 @@ export { initProject } from './initProject.js';
 export { createGuard } from './createGuard.js';
 export { createDirective } from './createDirective.js';
 export { createPipe } from './createPipe.js';
+export { showHelp } from './help.js';
 
 // Ajouter d'autres fonctions pour les autres scripts
