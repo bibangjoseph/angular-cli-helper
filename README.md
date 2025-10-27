@@ -38,7 +38,7 @@ npm install angular-cli-helper --save-dev
 Ajoutez les scripts dans votre `package.json` :
 ```json
 "scripts": {
-  "init": "init-project",
+  "g:init": "init-project",
   "g:component": "create-component",
   "g:service": "create-service",
   "g:model": "create-model",
@@ -46,7 +46,8 @@ Ajoutez les scripts dans votre `package.json` :
   "g:package": "create-package",
   "g:guard": "create-guard",
   "g:directive": "create-directive",
-  "g:pipe": "create-pipe"
+  "g:pipe": "create-pipe",
+  "help": "angular-cli-help"
 }
 ```
 
@@ -64,7 +65,7 @@ npm run g:service
 
 ### 1. 🎬 Initialiser un nouveau projet
 ```bash
-init-project
+npm run g:init
 ```
 
 **Qu'est-ce que ça fait ?**
@@ -110,7 +111,7 @@ src/
 
 ### 2. 📦 Créer un package complet
 ```bash
-g:package
+npm run g:package
 ```
 
 **Prompt :**
@@ -134,7 +135,7 @@ g:package
 **Code généré dans `routes.ts` :**
 ```typescript
 import { Routes } from '@angular/router';
-import { MainLayout } from '../../layout/main-layout/main-layout.component';
+import { MainLayout } from '../../layout/main-layout/main-layout';
 
 export const USERS_ROUTES: Routes = [
     {
@@ -156,7 +157,7 @@ export const USERS_ROUTES: Routes = [
 
 ### 3. 📄 Créer une page
 ```bash
-g:page
+npm run g:page
 ```
 
 **Prompts :**
@@ -266,7 +267,7 @@ export const USERS_ROUTES: Routes = [
 
 ### 4. 🧩 Créer un composant
 ```bash
-g:component
+npm run g:component
 ```
 
 **Prompts :**
@@ -297,7 +298,7 @@ g:component
 
 ### 5. ⚙️ Créer un service
 ```bash
-g:service
+npm run g:service
 ```
 
 **Prompt :**
@@ -314,7 +315,7 @@ g:service
 
 ### 6. 📋 Créer un modèle
 ```bash
-g:model
+npm run g:model
 ```
 
 **Prompts :**
@@ -342,7 +343,7 @@ export interface User {
 
 ### 7. 🛡️ Créer un guard
 ```bash
-g:guard
+npm run g:guard
 ```
 
 **Prompt :**
@@ -359,7 +360,7 @@ g:guard
 
 ### 8. 🎨 Créer une directive
 ```bash
-g:directive
+npm run g:directive
 ```
 
 **Prompt :**
@@ -376,7 +377,7 @@ g:directive
 
 ### 9. 🔧 Créer un pipe
 ```bash
-g:pipe
+npm run g:pipe
 ```
 
 **Prompt :**
@@ -400,21 +401,21 @@ ng new mon-projet --standalone
 
 # 2. Installer angular-cli-helper
 cd mon-projet
-npm install -g angular-cli-helper
+npm install angular-cli-helper --save-dev
 
 # 3. Initialiser la structure complète
-init-project
+npm run init-project
 
 # 4. Créer un package métier
-g:package
+npm run g:package
 # Ex: users, products, orders...
 
 # 5. Créer des pages dans le package
-g:page
+npm run g:page
 # Ex: user-liste, user-detail...
 
 # 6. Créer des composants réutilisables
-g:component
+npm run g:component
 # Ex: user-card, product-card...
 ```
 
@@ -425,26 +426,26 @@ g:component
 ### Exemple 1 : Module de gestion des utilisateurs
 ```bash
 # 1. Créer le package
-create-package
+npm run g:package
 > users
 
 # 2. Créer les pages
-g:page
+npm run g:page
 > User Liste
 > users
 
-g:page
+npm run g:page
 > User Detail
 > users
 
 # 3. Créer un composant pour afficher un utilisateur
-g:component
+npm run g:component
 > user-card
 > Non (N)
 > users
 
 # 4. Créer le modèle
-g:model
+npm run g:model
 > user
 > users
 ```
