@@ -5,6 +5,7 @@
   "description": "A CLI helper for managing Angular projects with commands to create components, services, models, pages, and packages.",
   "bin": {
     "init-project": "./src/initProject.js",
+    "g:help": "./src/help.js",
     "g:component": "./src/createComponent.js",
     "g:service": "./src/createService.js",
     "g:model": "./src/createModel.js",
