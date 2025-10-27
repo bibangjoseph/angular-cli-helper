@@ -155,6 +155,9 @@ npm run g:model
 /**
  * Met à jour le fichier app.routes.ts
  */
+/**
+ * Met à jour le fichier app.routes.ts
+ */
 function updateAppRoutes(moduleName) {
     console.log('\n⚙️  Mise à jour de app.routes.ts...');
 
@@ -186,7 +189,6 @@ function updateAppRoutes(moduleName) {
         // 1. AJOUTER L'IMPORT
         // =============================================
 
-        // Méthode plus robuste : chercher toutes les lignes qui commencent par "import"
         const lines = content.split('\n');
         let lastImportLineIndex = -1;
 
@@ -212,11 +214,11 @@ function updateAppRoutes(moduleName) {
         // 2. AJOUTER LA ROUTE DANS LE TABLEAU
         // =============================================
 
-        // Trouver le tableau routes
-        const routesArrayRegex = /export\s+const\s+routes:\s*Routes\s*=\s*\[/;
-        const routesArrayMatch = content.match(routesArrayRegex);
+        // Trouver "export const routes: Routes = ["
+        const routesStartRegex = /export\s+const\s+routes:\s*Routes\s*=\s*\[/;
+        const routesStartMatch = content.match(routesStartRegex);
 
-        if (!routesArrayMatch) {
+        if (!routesStartMatch) {
             console.error('❌ Impossible de trouver "export const routes: Routes = ["');
             console.log('⚠️  Ajoutez manuellement:');
             console.log(`   ${importStatement}`);
@@ -224,37 +226,51 @@ function updateAppRoutes(moduleName) {
             return;
         }
 
-        // Trouver la position de fermeture du tableau "];""
-        const startIndex = routesArrayMatch.index + routesArrayMatch[0].length;
-        const closingBracketRegex = /\n\];/;
-        const remainingContent = content.slice(startIndex);
-        const closingMatch = remainingContent.match(closingBracketRegex);
+        const arrayStartIndex = routesStartMatch.index + routesStartMatch[0].length;
 
-        if (!closingMatch) {
-            console.error('❌ Impossible de trouver la fermeture du tableau routes "];');
+        // Trouver la fermeture du tableau en comptant les crochets
+        let bracketCount = 1;
+        let arrayEndIndex = -1;
+
+        for (let i = arrayStartIndex; i < content.length; i++) {
+            if (content[i] === '[') {
+                bracketCount++;
+            } else if (content[i] === ']') {
+                bracketCount--;
+                if (bracketCount === 0) {
+                    arrayEndIndex = i;
+                    break;
+                }
+            }
+        }
+
+        if (arrayEndIndex === -1) {
+            console.error('❌ Impossible de trouver la fermeture du tableau routes');
+            console.log('⚠️  Ajoutez manuellement:');
+            console.log(`   ...${importName},`);
             return;
         }
 
-        const closingIndex = startIndex + closingMatch.index;
-
-        // Extraire le contenu entre [ et ];
-        let routesContent = content.slice(startIndex, closingIndex);
+        // Extraire le contenu entre [ et ]
+        let routesContent = content.slice(arrayStartIndex, arrayEndIndex);
 
         // Chercher une route wildcard (**)
         const wildcardRegex = /\{\s*path:\s*['"][*]{2}['"]/;
         const hasWildcard = wildcardRegex.test(routesContent);
 
         if (hasWildcard) {
-            // Trouver la position du wildcard dans routesContent
+            // Trouver la position du wildcard
             const wildcardMatch = routesContent.match(wildcardRegex);
             const wildcardPos = routesContent.indexOf(wildcardMatch[0]);
 
-            // Trouver le début de l'objet wildcard (le '{' qui précède)
+            // Trouver le début de l'objet wildcard (chercher le '{' qui correspond)
             let wildcardStart = wildcardPos;
             let braceCount = 0;
+
             for (let i = wildcardPos; i >= 0; i--) {
-                if (routesContent[i] === '}') braceCount++;
-                if (routesContent[i] === '{') {
+                if (routesContent[i] === '}') {
+                    braceCount++;
+                } else if (routesContent[i] === '{') {
                     if (braceCount === 0) {
                         wildcardStart = i;
                         break;
@@ -263,26 +279,30 @@ function updateAppRoutes(moduleName) {
                 }
             }
 
-            // Insérer AVANT le wildcard
+            // Séparer avant et après le wildcard
             const beforeWildcard = routesContent.slice(0, wildcardStart);
             const wildcardAndAfter = routesContent.slice(wildcardStart);
 
-            // Vérifier si on a besoin d'une virgule
+            // Déterminer si on a besoin d'une virgule
             const trimmedBefore = beforeWildcard.trimEnd();
             let needsComma = false;
 
             if (trimmedBefore.length > 0) {
-                // Vérifier le dernier caractère non-blanc
                 const lastChar = trimmedBefore[trimmedBefore.length - 1];
                 needsComma = lastChar !== ',' && lastChar !== '[';
             }
 
+            // Ajouter l'indentation appropriée
+            const indent = '  ';
+
             // Construire le nouveau contenu
-            const indent = '  '; // 2 espaces d'indentation
             routesContent = beforeWildcard +
                 (needsComma ? ',' : '') +
                 '\n' + indent + routeSpread + ',' +
                 '\n' + indent + wildcardAndAfter;
+
+            console.log('✅ Route ajoutée avant le wildcard (**)');
+
         } else {
             // Pas de wildcard, ajouter à la fin
             const trimmedContent = routesContent.trimEnd();
@@ -297,10 +317,12 @@ function updateAppRoutes(moduleName) {
             routesContent = routesContent +
                 (needsComma ? ',' : '') +
                 '\n' + indent + routeSpread;
+
+            console.log('✅ Route ajoutée à la fin du tableau');
         }
 
         // Reconstruire le fichier complet
-        content = content.slice(0, startIndex) + routesContent + content.slice(closingIndex);
+        content = content.slice(0, arrayStartIndex) + routesContent + content.slice(arrayEndIndex);
 
         // Écrire le fichier
         fs.writeFileSync(appRoutesPath, content, 'utf8');
