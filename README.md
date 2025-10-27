@@ -34,6 +34,7 @@
 ### Installation globale (recommandée)
 ```bash
 npm install -g angular-cli-helper
+
 ```
 
 Puis utilisez directement les commandes :
@@ -125,7 +126,7 @@ src/
 
 ### 2. 📦 Créer un package complet
 ```bash
-create-package
+g:package
 ```
 
 **Prompt :**
@@ -140,7 +141,6 @@ create-package
    ├── views/
    ├── models/
    ├── services/
-   │   └── users.service.ts      # Service avec HttpClient
    ├── routes.ts                  # Routes du module
    └── README.md
 
@@ -168,30 +168,11 @@ export const USERS_ROUTES: Routes = [
 ];
 ```
 
-**Service généré :**
-```typescript
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { environment } from '../../../../environments/environment';
-
-@Injectable({
-  providedIn: 'root'
-})
-export class UsersService {
-  private apiUrl = `${environment.apiUrl}/users`;
-
-  constructor(private http: HttpClient) {}
-
-  // Ajoutez vos méthodes ici
-}
-```
-
 ---
 
 ### 3. 📄 Créer une page
 ```bash
-create-page
+g:page
 ```
 
 **Prompts :**
@@ -301,7 +282,7 @@ export const USERS_ROUTES: Routes = [
 
 ### 4. 🧩 Créer un composant
 ```bash
-create-component
+g:component
 ```
 
 **Prompts :**
@@ -332,7 +313,7 @@ create-component
 
 ### 5. ⚙️ Créer un service
 ```bash
-create-service
+g:service
 ```
 
 **Prompt :**
@@ -349,7 +330,7 @@ create-service
 
 ### 6. 📋 Créer un modèle
 ```bash
-create-model
+g:model
 ```
 
 **Prompts :**
@@ -377,7 +358,7 @@ export interface User {
 
 ### 7. 🛡️ Créer un guard
 ```bash
-create-guard
+g:guard
 ```
 
 **Prompt :**
@@ -394,7 +375,7 @@ create-guard
 
 ### 8. 🎨 Créer une directive
 ```bash
-create-directive
+g:directive
 ```
 
 **Prompt :**
@@ -411,7 +392,7 @@ create-directive
 
 ### 9. 🔧 Créer un pipe
 ```bash
-create-pipe
+g:pipe
 ```
 
 **Prompt :**
@@ -441,15 +422,15 @@ npm install -g angular-cli-helper
 init-project
 
 # 4. Créer un package métier
-create-package
+g:package
 # Ex: users, products, orders...
 
 # 5. Créer des pages dans le package
-create-page
+g:page
 # Ex: user-liste, user-detail...
 
 # 6. Créer des composants réutilisables
-create-component
+g:component
 # Ex: user-card, product-card...
 ```
 
@@ -464,22 +445,22 @@ create-package
 > users
 
 # 2. Créer les pages
-create-page
+g:page
 > User Liste
 > users
 
-create-page
+g:page
 > User Detail
 > users
 
 # 3. Créer un composant pour afficher un utilisateur
-create-component
+g:component
 > user-card
 > Non (N)
 > users
 
 # 4. Créer le modèle
-create-model
+g:model
 > user
 > users
 ```
@@ -503,31 +484,6 @@ features/users/
 **Routes accessibles :**
 - `/users/user-liste` - Liste des utilisateurs
 - `/users/user-detail` - Détail d'un utilisateur
-
----
-
-### Exemple 2 : Module d'authentification complet
-```bash
-# 1. Package auth
-create-package
-> auth
-
-# 2. Pages d'authentification
-create-page
-> Login
-> auth
-
-create-page
-> Register
-> auth
-
-# 3. Guard d'authentification
-create-guard
-> auth
-
-# 4. Service auth (déjà créé avec le package)
-# Modifiez: features/auth/services/auth.service.ts
-```
 
 ---
 
@@ -613,46 +569,6 @@ ng build --configuration production
 ```
 
 Les fichiers sont automatiquement remplacés grâce à la configuration `angular.json`.
-
----
-
-## ❓ FAQ
-
-**Q: Le service API est-il créé automatiquement ?**
-R: Oui, lors de l'exécution de `init-project`, un service API complet est généré dans `core/services/api.service.ts`.
-
-**Q: Les pages incluent-elles automatiquement le service API ?**
-R: Oui, toutes les pages créées avec `create-page` importent automatiquement le service API et incluent `ngOnInit()`.
-
-**Q: Les routes sont-elles configurées en lazy loading ?**
-R: Oui, toutes les routes sont automatiquement configurées avec `loadComponent()` pour le lazy loading.
-
-**Q: Puis-je personnaliser les templates générés ?**
-R: Actuellement, les templates sont fixes. Une option de personnalisation pourrait être ajoutée dans une future version.
-
-**Q: Est-ce compatible avec Angular 19 ?**
-R: Oui, la version 4.x+ supporte Angular 17 à 20+.
-
-**Q: Le service API gère-t-il les erreurs backend ?**
-R: Oui, les erreurs 422 (validation) sont automatiquement stockées dans un signal `backendErrors` accessible dans tous les composants.
-
-**Q: Comment accéder aux erreurs de validation dans mes formulaires ?**
-R: Utilisez `this.apiService.backendErrors()` pour accéder aux erreurs, ou directement dans le template avec le signal `backendErrors`.
-
----
-
-## 🛠️ Roadmap
-
-- [ ] Templates personnalisables via configuration
-- [ ] Support de Tailwind CSS / Angular Material
-- [ ] Génération de tests unitaires automatiques
-- [ ] Configuration via fichier `.angular-cli-helper.json`
-- [ ] Support de NX monorepo
-- [ ] Génération d'interceptors HTTP
-- [ ] Templates pour formulaires réactifs
-- [ ] Génération de CRUD complet
-
----
 
 ## 🤝 Contribution
 
