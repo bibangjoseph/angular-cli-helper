@@ -1,41 +1,64 @@
 {
-    "name": "angular-cli-helper",
-    "version": "4.9.0",
-    "main": "index.js",
-    "description": "A CLI helper for managing Angular projects with commands to create components, services, models, pages, and packages.",
-    "bin": {
-        "init-project": "./src/initProject.js",
-        "create-component": "./src/createComponent.js",
-        "create-service": "./src/createService.js",
-        "create-model": "./src/createModel.js",
-        "create-page": "./src/createPage.js",
-        "create-package": "./src/createPackage.js",
-        "create-guard": "./src/createGuard.js",
-        "create-directive": "./src/createDirective.js",
-        "create-pipe": "./src/createPipe.js"
-    },
-    "scripts": {
-        "build": "mkdir -p dist && cp -r src dist && cp package.json dist && cp README.md dist",
-        "deploy": "npm run build && cd dist && npm publish --access public"
-    },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/bibangjoseph/angular-cli-helper"
-    },
-    "keywords": [
-        "angular",
-        "cli",
-        "components",
-        "services",
-        "models",
-        "pages",
-        "packages"
-    ],
-    "author": "BIBANG BEFENE Joseph Donovan",
-    "license": "MIT",
-    "dependencies": {
-        "inquirer": "^12.0.1",
-        "shelljs": "^0.8.5"
-    },
-    "type": "module"
+  "name": "angular-cli-helper",
+  "version": "4.9.0",
+  "main": "index.js",
+  "description": "A CLI helper for managing Angular projects with commands to create components, services, models, pages, and packages.",
+  "bin": {
+    "init-project": "./src/initProject.js",
+    "create-component": "./src/createComponent.js",
+    "create-service": "./src/createService.js",
+    "create-model": "./src/createModel.js",
+    "create-page": "./src/createPage.js",
+    "create-package": "./src/createPackage.js",
+    "create-guard": "./src/createGuard.js",
+    "create-directive": "./src/createDirective.js",
+    "create-pipe": "./src/createPipe.js"
+  },
+  "scripts": {
+    "build": "mkdir -p dist && cp -r src dist && cp package.json dist && cp README.md dist",
+    "deploy": "npm run build && cd dist && npm publish --access public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bibangjoseph/angular-cli-helper.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bibangjoseph/angular-cli-helper/issues"
+  },
+  "homepage": "https://github.com/bibangjoseph/angular-cli-helper#readme",
+  "keywords": [
+    "angular",
+    "angular-cli",
+    "cli",
+    "cli-tool",
+    "generator",
+    "scaffold",
+    "components",
+    "services",
+    "models",
+    "pages",
+    "packages",
+    "standalone",
+    "angular-20",
+    "productivity",
+    "boilerplate"
+  ],
+  "author": "BIBANG BEFENE Joseph Donovan",
+  "license": "MIT",
+  "dependencies": {
+    "inquirer": "^12.0.1",
+    "shelljs": "^0.8.5"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "type": "module",
+  "files": [
+    "src/",
+    "index.js",
+    "README.md",
+    "LICENSE"
+  ]
 }

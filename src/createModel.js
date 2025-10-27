@@ -48,7 +48,7 @@ function moduleExists(modulePath) {
 
 // Génération de l'interface du modèle
 function generateModel(moduleName, modelName) {
-    shelljs.exec(`ng g interface features/${moduleName}/models/${modelName}.model`);
+    shelljs.exec(`ng g interface features/${moduleName}/models/${modelName}`);
     console.info(`Le modèle ${modelName} a été créé avec succès dans le module ${moduleName}.`);
 }
 

@@ -67,7 +67,10 @@ export class ${className} {}
     fs.writeFileSync(htmlPath, `<p>${selector} works!</p>`);
 
     // Create .scss file
-    fs.writeFileSync(scssPath, `/* Styles pour ${selector} */`);
+    fs.writeFileSync(scssPath, `
+        /* Styles pour ${selector} */
+        
+    `);
 
     console.log(`✅ Composant standalone généré dans ${basePath}`);
 }
