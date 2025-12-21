@@ -50,7 +50,7 @@ function updateModuleRoutes(modulePath, moduleName, pageName, folderName, classN
 
         // Créer l'import lazy loading
         const lazyLoadImport = `
-            ,{
+            {
                 path: '${routePath}',
                 loadComponent: () => import('./views/${folderName}/${pageName}.page').then(m => m.${className})
             }`;
@@ -85,7 +85,7 @@ function updateModuleRoutes(modulePath, moduleName, pageName, folderName, classN
             if (!existingChildren.endsWith(',')) {
                 existingChildren += ',';
             }
-            newChildren = `${existingChildren}\n${lazyLoadImport}`;
+            newChildren = `${existingChildren},\n${lazyLoadImport}`;
         } else {
             // Première route enfant
             newChildren = `\n${lazyLoadImport}`;

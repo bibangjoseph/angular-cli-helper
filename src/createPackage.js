@@ -84,23 +84,23 @@ function createRoutesFile(modulePath, moduleName) {
     const constantName = toConstantCase(moduleName);
     const kebabName = toKebabCase(moduleName);
 
-    const routesContent = `import { Routes } from '@angular/router';
-import { MainLayout } from '../../layout/main-layout/main-layout';
+    const routesContent = `
+    import { Routes } from '@angular/router';
+    import { MainLayout } from '../../layout/main-layout/main-layout';
 
-export const ${constantName}_ROUTES: Routes = [
-    {
-        path: '${kebabName}',
-        component: MainLayout,
-        children: [
-            {
-                path: '',
-                redirectTo: '${kebabName}',
-                pathMatch: 'full'
-            }
-            // Ajoutez vos routes ici avec npm run g:page
-        ]
-    }
-];
+    export const ${constantName}_ROUTES: Routes = [
+        {
+            path: '${kebabName}',
+            component: MainLayout,
+            children: [
+                {
+                    path: '',
+                    redirectTo: '${kebabName}',
+                    pathMatch: 'full'
+                }
+            ]
+        }
+    ];
 `;
 
     fs.writeFileSync(routesPath, routesContent);
