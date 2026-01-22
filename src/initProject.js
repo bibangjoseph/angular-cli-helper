@@ -11,7 +11,7 @@ const __dirname = path.dirname(__filename);
 /**
  * Initialise la structure complète du projet Angular
  */
-function initProject() {
+async function initProject() {
     console.log('\n🚀 Angular CLI Helper - Initialisation du projet\n');
     console.log('🛠  Création de la structure de base du projet...\n');
 
@@ -34,17 +34,32 @@ function initProject() {
         // Modifier angular.json pour fileReplacements
         updateAngularJson();
 
+        // Créer le service Core
+        createCoreService(basePath);
+
         // Créer le service API
         createApiService(basePath);
+
+        // Créer les guards
+        createGuards(basePath);
+
+        // Créer l'interceptor
+        createHttpInterceptor(basePath);
+
+        // Créer/Mettre à jour app.config.ts
+        createAppConfig(basePath);
 
         // Générer le main-layout
         generateMainLayout();
 
-        // Remplacer app.component (AVANT la création de routes)
+        // Remplacer app.component
         replaceAppComponent(basePath);
 
         // Créer app.routes.ts si inexistant
         createAppRoutes(basePath);
+
+        // Créer les modules par défaut
+        await createDefaultModules(basePath);
 
         console.log('\n✅ Structure du projet créée avec succès!\n');
         console.log('📂 Structure générée:');
@@ -53,9 +68,13 @@ function initProject() {
     ├── app/
     │   ├── core/
     │   │   ├── services/
-    │   │   │   └── api.service.ts
+    │   │   │   ├── api.service.ts
+    │   │   │   └── core.service.ts
     │   │   ├── guards/
+    │   │   │   ├── auth.guard.ts
+    │   │   │   └── guest.guard.ts
     │   │   └── interceptors/
+    │   │       └── http.interceptor.ts
     │   ├── shared/
     │   │   ├── components/
     │   │   ├── directives/
@@ -63,7 +82,10 @@ function initProject() {
     │   ├── layout/
     │   │   └── main-layout/
     │   ├── features/
-    │   ├── app.component.ts
+    │   │   ├── auth/
+    │   │   └── dashboard/
+    │   ├── app.ts
+    │   ├── app.config.ts
     │   └── app.routes.ts
     └── environments/
         ├── environment.ts
@@ -71,14 +93,17 @@ function initProject() {
         `);
 
         console.log('💡 Prochaines étapes:');
-        console.log('   - Utilisez "npm run g:package" pour créer un module métier');
-        console.log('   - Utilisez "npm run g:component" pour créer des composants');
-        console.log('   - Utilisez "npm run g:service" pour créer des services');
+        console.log('   - Modules "auth" et "dashboard" créés par défaut');
+        console.log('   - Utilisez "npm run g:package" pour créer d\'autres modules');
+        console.log('   - Utilisez "npm run g:page" pour créer des pages');
         console.log('   - Le service API est disponible dans core/services/api.service.ts');
-        console.log('   - Les environnements sont configurés dans src/environments/\n');
+        console.log('   - Le service Core gère l\'authentification');
+        console.log('   - Les guards AuthGuard et GuestGuard sont disponibles');
+        console.log('   - L\'interceptor HTTP est configuré pour injecter le token\n');
 
     } catch (error) {
         console.error('❌ Erreur lors de l\'initialisation:', error.message);
+        console.error(error.stack);
         process.exit(1);
     }
 }
@@ -137,20 +162,17 @@ function createFolderStructure(basePath) {
     }
 
     // Créer des fichiers .gitkeep pour les dossiers vides
-    createGitkeepFiles(basePath, folders);
+    createGitkeepFiles(basePath);
 }
 
 /**
  * Crée des fichiers .gitkeep dans les dossiers vides
  */
-function createGitkeepFiles(basePath, folders) {
+function createGitkeepFiles(basePath) {
     const emptyFolders = [
-        'core/guards',
-        'core/interceptors',
         'shared/components',
         'shared/directives',
-        'shared/pipes',
-        'features'
+        'shared/pipes'
     ];
 
     emptyFolders.forEach(folder => {
@@ -169,15 +191,11 @@ function createEnvironmentFiles() {
 
     const environmentsPath = path.join(process.cwd(), 'src', 'environments');
 
-    // Créer le dossier environments s'il n'existe pas
     if (!fs.existsSync(environmentsPath)) {
         shelljs.mkdir('-p', environmentsPath);
         console.log('📁 Créé: src/environments/');
-    } else {
-        console.log('ℹ️  Existe déjà: src/environments/');
     }
 
-    // Contenu de environment.ts (local/développement)
     const environmentLocalPath = path.join(environmentsPath, 'environment.ts');
     const environmentLocalContent = `export const environment = {
   production: false,
@@ -186,7 +204,6 @@ function createEnvironmentFiles() {
 };
 `;
 
-    // Contenu de environment.prod.ts (production)
     const environmentProdPath = path.join(environmentsPath, 'environment.prod.ts');
     const environmentProdContent = `export const environment = {
   production: true,
@@ -195,7 +212,6 @@ function createEnvironmentFiles() {
 };
 `;
 
-    // Créer environment.ts
     if (!fs.existsSync(environmentLocalPath)) {
         fs.writeFileSync(environmentLocalPath, environmentLocalContent);
         console.log('✅ Créé: environments/environment.ts');
@@ -203,7 +219,6 @@ function createEnvironmentFiles() {
         console.log('ℹ️  Existe déjà: environments/environment.ts');
     }
 
-    // Créer environment.prod.ts
     if (!fs.existsSync(environmentProdPath)) {
         fs.writeFileSync(environmentProdPath, environmentProdContent);
         console.log('✅ Créé: environments/environment.prod.ts');
@@ -213,7 +228,125 @@ function createEnvironmentFiles() {
 }
 
 /**
- * Crée le service API
+ * Crée le service Core
+ */
+function createCoreService(basePath) {
+    console.log('⚡ Création du service Core...');
+
+    const servicesPath = path.join(basePath, 'core', 'services');
+    const coreServicePath = path.join(servicesPath, 'core.service.ts');
+
+    if (fs.existsSync(coreServicePath)) {
+        console.log('ℹ️  Le fichier core.service.ts existe déjà.');
+        return;
+    }
+
+    const coreServiceContent = `import { Injectable, signal, computed } from '@angular/core';
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  // Ajoutez d'autres propriétés selon vos besoins
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class CoreService {
+  // Signal pour l'utilisateur actuel
+  private _currentUser = signal<User | null>(null);
+  public readonly currentUser = computed(() => this._currentUser());
+
+  // Signal pour le token
+  private _token = signal<string | null>(null);
+  public readonly token = computed(() => this._token());
+
+  // Computed pour vérifier si l'utilisateur est authentifié
+  public readonly isAuthenticated = computed(() => !!this._token());
+
+  // Getter pour le token (pour l'interceptor)
+  public get getToken(): string | null {
+    return this._token();
+  }
+
+  constructor() {
+    // Charger le token depuis le localStorage au démarrage
+    this.loadTokenFromStorage();
+  }
+
+  /**
+   * Charge le token depuis le localStorage
+   */
+  private loadTokenFromStorage(): void {
+    const token = localStorage.getItem('auth_token');
+    const userStr = localStorage.getItem('current_user');
+    
+    if (token) {
+      this._token.set(token);
+    }
+    
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        this._currentUser.set(user);
+      } catch (e) {
+        console.error('Erreur lors du parsing du user:', e);
+      }
+    }
+  }
+
+  /**
+   * Définit le token d'authentification
+   */
+  setToken(token: string): void {
+    this._token.set(token);
+    localStorage.setItem('auth_token', token);
+  }
+
+  /**
+   * Définit l'utilisateur actuel
+   */
+  setCurrentUser(user: User): void {
+    this._currentUser.set(user);
+    localStorage.setItem('current_user', JSON.stringify(user));
+  }
+
+  /**
+   * Déconnecte l'utilisateur
+   */
+  logout(): void {
+    this._token.set(null);
+    this._currentUser.set(null);
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('current_user');
+  }
+
+  /**
+   * Vérifie si l'utilisateur a un rôle spécifique
+   */
+  hasRole(role: string): boolean {
+    // Implémentez votre logique de vérification des rôles ici
+    // Par exemple: return this.currentUser()?.roles?.includes(role) ?? false;
+    return false;
+  }
+
+  /**
+   * Vérifie si l'utilisateur a une permission spécifique
+   */
+  hasPermission(permission: string): boolean {
+    // Implémentez votre logique de vérification des permissions ici
+    return false;
+  }
+}
+`;
+
+    fs.writeFileSync(coreServicePath, coreServiceContent);
+    console.log('✅ Créé: core/services/core.service.ts');
+}
+
+/**
+ * Crée le service API (version simplifiée pour la taille)
  */
 function createApiService(basePath) {
     console.log('⚡ Création du service API...');
@@ -226,35 +359,11 @@ function createApiService(basePath) {
         return;
     }
 
-    const apiServiceContent = `import { inject, Injectable, Injector, signal, computed } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
+    const apiServiceContent = `import { inject, Injectable, signal, computed } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { catchError, finalize, Observable, tap, throwError } from 'rxjs';
-
-// Interface pour les options de requête
-export interface ApiRequestOptions {
-  headers?: HttpHeaders | { [header: string]: string | string[] };
-  params?: HttpParams | { [param: string]: string | string[] };
-  reportProgress?: boolean;
-  observe?: 'body';
-  withCredentials?: boolean;
-}
-
-// Interface pour les réponses paginées
-export interface PaginatedResponse<T> {
-  data: T[];
-  current_page: number;
-  last_page: number;
-  per_page: number;
-  total: number;
-  links?: {
-    first?: string;
-    last?: string;
-    prev?: string;
-    next?: string;
-  };
-}
 
 @Injectable({
   providedIn: 'root'
@@ -262,195 +371,74 @@ export interface PaginatedResponse<T> {
 export class ApiService {
   private http = inject(HttpClient);
   private router = inject(Router);
-  private injector = inject(Injector);
   
   private readonly apiUrl = environment.apiUrl;
   private readonly debugMode = !environment.production;
 
-  // Gestion des erreurs backend avec signals
   private _backendErrors = signal<Record<string, string[]>>({});
   public readonly backendErrors = computed(() => this._backendErrors());
 
-  // Signal pour suivre l'état de chargement
   private _loading = signal<boolean>(false);
   public readonly loading = computed(() => this._loading());
 
-  /**
-   * Efface les erreurs backend
-   */
   clearBackendErrors(): void {
     this._backendErrors.set({});
   }
 
-  /**
-   * Efface les erreurs d'un champ spécifique
-   */
   clearFieldError(fieldName: string): void {
     const errors = { ...this._backendErrors() };
     delete errors[fieldName];
     this._backendErrors.set(errors);
   }
 
-  /**
-   * GET request
-   */
-  get<T>(url: string, options?: ApiRequestOptions): Observable<T> {
+  get<T>(url: string, options?: any): Observable<T> {
     this._loading.set(true);
-    const request = this.http.get<T>(this.apiUrl + url, options).pipe(
-      tap(data => {
-        if (this.debugMode) {
-          console.log(\`[GET] \${url}\`, data);
-        }
-      }),
+    return this.http.get<T>(this.apiUrl + url, options).pipe(
+      tap(data => this.debugMode && console.log(\`[GET] \${url}\`, data)),
       catchError(error => this.handleError(error, 'GET', url)),
       finalize(() => this._loading.set(false))
     );
-    return request;
   }
 
-  /**
-   * POST request
-   */
-  post<T>(url: string, data: any, options?: ApiRequestOptions): Observable<T> {
+  post<T>(url: string, data: any, options?: any): Observable<T> {
     this._loading.set(true);
     this.clearBackendErrors();
-    
-    const request = this.http.post<T>(this.apiUrl + url, data, options).pipe(
-      tap(data => {
-        if (this.debugMode) {
-          console.log(\`[POST] \${url}\`, { request: data, response: data });
-        }
-      }),
+    return this.http.post<T>(this.apiUrl + url, data, options).pipe(
+      tap(data => this.debugMode && console.log(\`[POST] \${url}\`, data)),
       catchError(error => this.handleError(error, 'POST', url)),
       finalize(() => this._loading.set(false))
     );
-    return request;
   }
 
-  /**
-   * PUT request
-   */
-  put<T>(url: string, data: any, options?: ApiRequestOptions): Observable<T> {
+  put<T>(url: string, data: any, options?: any): Observable<T> {
     this._loading.set(true);
     this.clearBackendErrors();
-    
-    const request = this.http.put<T>(this.apiUrl + url, data, options).pipe(
-      tap(data => {
-        if (this.debugMode) {
-          console.log(\`[PUT] \${url}\`, { request: data, response: data });
-        }
-      }),
+    return this.http.put<T>(this.apiUrl + url, data, options).pipe(
+      tap(data => this.debugMode && console.log(\`[PUT] \${url}\`, data)),
       catchError(error => this.handleError(error, 'PUT', url)),
       finalize(() => this._loading.set(false))
     );
-    return request;
   }
 
-  /**
-   * PATCH request
-   */
-  patch<T>(url: string, data: any, options?: ApiRequestOptions): Observable<T> {
+  patch<T>(url: string, data: any, options?: any): Observable<T> {
     this._loading.set(true);
     this.clearBackendErrors();
-    
-    const request = this.http.patch<T>(this.apiUrl + url, data, options).pipe(
-      tap(data => {
-        if (this.debugMode) {
-          console.log(\`[PATCH] \${url}\`, { request: data, response: data });
-        }
-      }),
+    return this.http.patch<T>(this.apiUrl + url, data, options).pipe(
+      tap(data => this.debugMode && console.log(\`[PATCH] \${url}\`, data)),
       catchError(error => this.handleError(error, 'PATCH', url)),
       finalize(() => this._loading.set(false))
     );
-    return request;
   }
 
-  /**
-   * DELETE request
-   */
-  delete<T>(url: string, options?: ApiRequestOptions): Observable<T> {
+  delete<T>(url: string, options?: any): Observable<T> {
     this._loading.set(true);
-    
-    const request = this.http.delete<T>(this.apiUrl + url, options).pipe(
-      tap(data => {
-        if (this.debugMode) {
-          console.log(\`[DELETE] \${url}\`, data);
-        }
-      }),
+    return this.http.delete<T>(this.apiUrl + url, options).pipe(
+      tap(data => this.debugMode && console.log(\`[DELETE] \${url}\`, data)),
       catchError(error => this.handleError(error, 'DELETE', url)),
       finalize(() => this._loading.set(false))
     );
-    return request;
   }
 
-  /**
-   * GET avec pagination
-   */
-  getPaginate<T>(url: string): Observable<PaginatedResponse<T>> {
-    this._loading.set(true);
-    
-    const request = this.http.get<PaginatedResponse<T>>(url).pipe(
-      tap(data => {
-        if (this.debugMode) {
-          console.log('[GET Paginate]', { url, response: data });
-        }
-      }),
-      catchError(error => this.handleError(error, 'GET PAGINATE', url)),
-      finalize(() => this._loading.set(false))
-    );
-    return request;
-  }
-
-  /**
-   * Upload de fichier
-   */
-  uploadFile<T>(url: string, file: File, additionalData?: Record<string, any>): Observable<T> {
-    this._loading.set(true);
-    
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    if (additionalData) {
-      Object.keys(additionalData).forEach(key => {
-        formData.append(key, additionalData[key]);
-      });
-    }
-
-    const request = this.http.post<T>(this.apiUrl + url, formData).pipe(
-      tap(data => {
-        if (this.debugMode) {
-          console.log(\`[UPLOAD] \${url}\`, { file: file.name, response: data });
-        }
-      }),
-      catchError(error => this.handleError(error, 'UPLOAD', url)),
-      finalize(() => this._loading.set(false))
-    );
-    return request;
-  }
-
-  /**
-   * Téléchargement de fichier
-   */
-  downloadFile(url: string): Observable<Blob> {
-    this._loading.set(true);
-    
-    const request = this.http.get(this.apiUrl + url, { 
-      responseType: 'blob' 
-    }).pipe(
-      tap(() => {
-        if (this.debugMode) {
-          console.log(\`[DOWNLOAD] \${url}\`);
-        }
-      }),
-      catchError(error => this.handleError(error, 'DOWNLOAD', url)),
-      finalize(() => this._loading.set(false))
-    );
-    return request;
-  }
-
-  /**
-   * Gestion centralisée des erreurs HTTP
-   */
   private handleError(error: HttpErrorResponse, method: string, url: string): Observable<never> {
     if (this.debugMode) {
       console.error(\`[ERROR \${method}] \${url}\`, error);
@@ -458,45 +446,20 @@ export class ApiService {
 
     switch (error.status) {
       case 0:
-        console.error('Connexion au serveur impossible. Vérifiez votre connexion internet.');
+        console.error('Connexion au serveur impossible.');
         break;
-
       case 401:
-        // Non autorisé - Gérer la déconnexion ici
-        console.warn('Session expirée. Redirection vers la page de connexion...');
+        console.warn('Session expirée.');
         this.router.navigate(['/login']);
         break;
-
       case 422:
-        // Erreur de validation
         this._backendErrors.set(error.error?.errors || {});
-        
-        if (this.debugMode) {
-          console.log('Erreurs de validation:', this._backendErrors());
-        }
         break;
-
       default:
         console.error(error.error?.message || 'Une erreur est survenue.');
     }
 
     return throwError(() => error);
-  }
-
-  /**
-   * Construire une URL avec des paramètres de requête
-   */
-  buildUrlWithParams(baseUrl: string, params: Record<string, any>): string {
-    const queryParams = new URLSearchParams();
-    
-    Object.keys(params).forEach(key => {
-      if (params[key] !== null && params[key] !== undefined) {
-        queryParams.append(key, params[key].toString());
-      }
-    });
-    
-    const queryString = queryParams.toString();
-    return queryString ? \`\${baseUrl}?\${queryString}\` : baseUrl;
   }
 }
 `;
@@ -506,7 +469,406 @@ export class ApiService {
 }
 
 /**
- * Met à jour angular.json pour ajouter fileReplacements
+ * Crée les guards
+ */
+function createGuards(basePath) {
+    console.log('🛡️  Création des guards...');
+
+    const guardsPath = path.join(basePath, 'core', 'guards');
+
+    // AuthGuard
+    const authGuardPath = path.join(guardsPath, 'auth.guard.ts');
+    if (!fs.existsSync(authGuardPath)) {
+        const authGuardContent = `import { inject, Injectable } from '@angular/core';
+import { CanActivate, Router } from '@angular/router';
+import { CoreService } from '../services/core.service';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class AuthGuard implements CanActivate {
+  private coreService = inject(CoreService);
+  private router = inject(Router);
+
+  canActivate() {
+    if (!this.coreService.isAuthenticated()) {
+      this.router.navigate(['/login']);
+      return false;
+    }
+    return true;
+  }
+}
+`;
+        fs.writeFileSync(authGuardPath, authGuardContent);
+        console.log('✅ Créé: core/guards/auth.guard.ts');
+    } else {
+        console.log('ℹ️  Existe déjà: core/guards/auth.guard.ts');
+    }
+
+    // GuestGuard
+    const guestGuardPath = path.join(guardsPath, 'guest.guard.ts');
+    if (!fs.existsSync(guestGuardPath)) {
+        const guestGuardContent = `import { inject, Injectable } from '@angular/core';
+import { CanActivate, Router } from '@angular/router';
+import { CoreService } from '../services/core.service';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class GuestGuard implements CanActivate {
+  private coreService = inject(CoreService);
+  private router = inject(Router);
+
+  canActivate() {
+    if (this.coreService.isAuthenticated()) {
+      this.router.navigate(['/dashboard']);
+      return false;
+    }
+    return true;
+  }
+}
+`;
+        fs.writeFileSync(guestGuardPath, guestGuardContent);
+        console.log('✅ Créé: core/guards/guest.guard.ts');
+    } else {
+        console.log('ℹ️  Existe déjà: core/guards/guest.guard.ts');
+    }
+}
+
+/**
+ * Crée l'interceptor HTTP
+ */
+function createHttpInterceptor(basePath) {
+    console.log('🔌 Création de l\'interceptor HTTP...');
+
+    const interceptorsPath = path.join(basePath, 'core', 'interceptors');
+    const interceptorPath = path.join(interceptorsPath, 'http.interceptor.ts');
+
+    if (fs.existsSync(interceptorPath)) {
+        console.log('ℹ️  Le fichier http.interceptor.ts existe déjà.');
+        return;
+    }
+
+    const interceptorContent = `import { HttpHandlerFn, HttpRequest } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { environment } from '../../../environments/environment';
+import { CoreService } from '../services/core.service';
+
+// HttpRequestInterceptor to inject the token in the header of the request
+export function HttpInterceptor(request: HttpRequest<any>, next: HttpHandlerFn) {
+  const coreService = inject(CoreService);
+  const token = coreService.getToken;
+  const isAuth = coreService.isAuthenticated();
+  const apiRegex = new RegExp(\`^\${environment.apiUrl}\`);
+  
+  if (apiRegex.test(request.url)) {
+    if (isAuth && token) {
+      const authReq = request.clone({
+        setHeaders: {
+          Authorization: \`Bearer \${token}\`,
+        },
+      });
+      return next(authReq);
+    }
+  }
+  
+  return next(request);
+}
+`;
+
+    fs.writeFileSync(interceptorPath, interceptorContent);
+    console.log('✅ Créé: core/interceptors/http.interceptor.ts');
+}
+
+/**
+ * Crée ou met à jour app.config.ts
+ */
+function createAppConfig(basePath) {
+    console.log('⚙️  Création/Mise à jour de app.config.ts...');
+
+    const configPath = path.join(basePath, 'app.config.ts');
+
+    const configContent = `import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { provideRouter } from '@angular/router';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+
+import { routes } from './app.routes';
+import { HttpInterceptor } from './core/interceptors/http.interceptor';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
+    provideRouter(routes),
+    provideHttpClient(
+      withInterceptors([HttpInterceptor])
+    )
+  ]
+};
+`;
+
+    fs.writeFileSync(configPath, configContent);
+    console.log('✅ Créé: app.config.ts');
+}
+
+/**
+ * Génère le composant main-layout
+ */
+function generateMainLayout() {
+    const layoutPath = path.join(process.cwd(), 'src', 'app', 'layout', 'main-layout');
+    const componentTsPath = path.join(layoutPath, 'main-layout.ts');
+
+    if (fs.existsSync(componentTsPath)) {
+        console.log('ℹ️  Le composant main-layout existe déjà.');
+        return;
+    }
+
+    console.log('🎨 Création du composant main-layout...');
+
+    if (!fs.existsSync(layoutPath)) {
+        shelljs.mkdir('-p', layoutPath);
+    }
+
+    const tsContent = `import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+
+@Component({
+  selector: 'app-main-layout',
+  standalone: true,
+  imports: [RouterOutlet],
+  templateUrl: './main-layout.html',
+  styleUrls: ['./main-layout.scss']
+})
+export class MainLayout {}
+`;
+
+    const htmlContent = `<div class="main-layout">
+  <header class="header">
+    <div class="container">
+      <h1>Mon Application</h1>
+      <!-- Navigation -->
+    </div>
+  </header>
+  
+  <main class="content">
+    <div class="container">
+      <router-outlet />
+    </div>
+  </main>
+  
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2025 - Mon Application</p>
+    </div>
+  </footer>
+</div>
+`;
+
+    const scssContent = `.main-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.header {
+  background-color: #333;
+  color: white;
+  padding: 1rem 0;
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+}
+
+.content {
+  flex: 1;
+  padding: 2rem 0;
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+}
+
+.footer {
+  background-color: #f5f5f5;
+  padding: 1rem 0;
+  margin-top: auto;
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    text-align: center;
+  }
+}
+`;
+
+    fs.writeFileSync(componentTsPath, tsContent);
+    fs.writeFileSync(path.join(layoutPath, 'main-layout.html'), htmlContent);
+    fs.writeFileSync(path.join(layoutPath, 'main-layout.scss'), scssContent);
+
+    console.log('✅ Composant main-layout créé.');
+}
+
+/**
+ * Remplace app.component
+ */
+function replaceAppComponent(basePath) {
+    console.log('🔄 Mise à jour de app.component...');
+
+    const appComponentDir = basePath;
+
+    const possibleFiles = [
+        'app.component.html',
+        'app.html',
+        'app.spec.ts',
+        'app.component.css',
+        'app.css',
+        'app.scss',
+        'app.component.scss',
+        'app.component.sass',
+        'app.component.less',
+        'app.component.spec.ts'
+    ];
+
+    possibleFiles.forEach(file => {
+        const filePath = path.join(appComponentDir, file);
+        if (fs.existsSync(filePath)) {
+            fs.rmSync(filePath);
+            console.log(`🗑️  Supprimé: ${file}`);
+        }
+    });
+
+    const appTsPath = path.join(appComponentDir, 'app.ts');
+    const appTsContent = `import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [RouterOutlet],
+  template: '<router-outlet />'
+})
+export class App {}
+`;
+
+    fs.writeFileSync(appTsPath, appTsContent);
+    console.log('✅ Fichier app.ts mis à jour.');
+}
+
+/**
+ * Crée app.routes.ts
+ */
+function createAppRoutes(basePath) {
+    const routesPath = path.join(basePath, 'app.routes.ts');
+
+    if (fs.existsSync(routesPath)) {
+        console.log('ℹ️  Le fichier app.routes.ts existe déjà.');
+        return;
+    }
+
+    const routesContent = `import { Routes } from '@angular/router';
+
+export const routes: Routes = [];
+`;
+
+    fs.writeFileSync(routesPath, routesContent);
+    console.log('✅ Fichier app.routes.ts créé.');
+}
+
+/**
+ * Crée les modules par défaut (auth et dashboard)
+ */
+async function createDefaultModules(basePath) {
+    console.log('\n📦 Création des modules par défaut...\n');
+
+    const featuresPath = path.join(basePath, 'features');
+
+    // Créer le module auth
+    await createModule(featuresPath, 'auth', 'GuestGuard');
+
+    // Créer le module dashboard
+    await createModule(featuresPath, 'dashboard', 'AuthGuard');
+
+    // Mettre à jour app.routes.ts avec les modules
+    updateAppRoutesWithDefaultModules(basePath);
+}
+
+/**
+ * Crée un module
+ */
+async function createModule(featuresPath, moduleName, guardType) {
+    const modulePath = path.join(featuresPath, moduleName);
+
+    if (fs.existsSync(modulePath)) {
+        console.log(`ℹ️  Le module "${moduleName}" existe déjà.`);
+        return;
+    }
+
+    // Créer la structure
+    const folders = ['views', 'models', 'components'];
+    shelljs.mkdir('-p', modulePath);
+
+    folders.forEach(folder => {
+        const folderPath = path.join(modulePath, folder);
+        shelljs.mkdir('-p', folderPath);
+        fs.writeFileSync(path.join(folderPath, '.gitkeep'), '');
+    });
+
+    console.log(`📁 Créé: features/${moduleName}/`);
+
+    // Créer le fichier routes.ts avec le guard approprié
+    const guardImport = guardType === 'AuthGuard'
+        ? "import { AuthGuard } from '../../core/guards/auth.guard';"
+        : "import { GuestGuard } from '../../core/guards/guest.guard';";
+
+    const constantName = moduleName.toUpperCase() + '_ROUTES';
+    const routesContent = `import { Routes } from '@angular/router';
+${guardImport}
+
+export const ${constantName}: Routes = [
+    {
+        path: '',
+        loadComponent: () => import('../../layout/main-layout/main-layout').then(m => m.MainLayout),
+        canActivate: [${guardType}],
+        children: []
+    }
+];
+`;
+
+    fs.writeFileSync(path.join(modulePath, 'routes.ts'), routesContent);
+    console.log(`✅ Créé: features/${moduleName}/routes.ts (avec ${guardType})`);
+}
+
+/**
+ * Met à jour app.routes.ts avec les modules par défaut
+ */
+function updateAppRoutesWithDefaultModules(basePath) {
+    const routesPath = path.join(basePath, 'app.routes.ts');
+
+    const routesContent = `import { Routes } from '@angular/router';
+
+export const routes: Routes = [
+    {
+        path: '',
+        loadChildren: () => import('./features/auth/routes').then(m => m.AUTH_ROUTES)
+    },
+    {
+        path: 'dashboard',
+        loadChildren: () => import('./features/dashboard/routes').then(m => m.DASHBOARD_ROUTES)
+    }
+];
+`;
+
+    fs.writeFileSync(routesPath, routesContent);
+    console.log('✅ app.routes.ts mis à jour avec les modules par défaut.');
+}
+
+/**
+ * Met à jour angular.json
  */
 function updateAngularJson() {
     console.log('⚙️  Mise à jour de angular.json...');
@@ -530,7 +892,7 @@ function updateAngularJson() {
         const project = angularJson.projects[projectName];
 
         if (!project.architect || !project.architect.build) {
-            console.warn('⚠️  Configuration build introuvable dans angular.json.');
+            console.warn('⚠️  Configuration build introuvable.');
             return;
         }
 
@@ -575,192 +937,14 @@ function updateAngularJson() {
         }
 
         fs.writeFileSync(angularJsonPath, JSON.stringify(angularJson, null, 2));
-        console.log('✅ angular.json mis à jour avec fileReplacements.');
+        console.log('✅ angular.json mis à jour.');
 
     } catch (error) {
         console.error('❌ Erreur lors de la mise à jour de angular.json:', error.message);
     }
 }
 
-/**
- * Génère le composant main-layout
- */
-function generateMainLayout() {
-    const layoutPath = path.join(process.cwd(), 'src', 'app', 'layout', 'main-layout');
-    const componentTsPath = path.join(layoutPath, 'main-layout.component.ts');
-
-    if (fs.existsSync(componentTsPath)) {
-        console.log('ℹ️  Le composant main-layout existe déjà.');
-        return;
-    }
-
-    console.log('🎨 Génération du composant main-layout...');
-
-    const result = shelljs.exec('ng g c layout/main-layout --skip-tests --standalone', { silent: true });
-
-    if (result.code === 0) {
-        console.log('✅ Composant main-layout généré avec succès.');
-        updateMainLayoutTemplate(layoutPath);
-    } else {
-        console.error('⚠️  Impossible de générer main-layout via Angular CLI.');
-    }
-}
-
-/**
- * Met à jour le template du main-layout
- */
-function updateMainLayoutTemplate(layoutPath) {
-    const htmlPath = path.join(layoutPath, 'main-layout.component.html');
-    const htmlContent = `<div class="main-layout">
-  <header class="header">
-    <!-- Header content -->
-  </header>
-  
-  <main class="content">
-    <router-outlet />
-  </main>
-  
-  <footer class="footer">
-    <!-- Footer content -->
-  </footer>
-</div>`;
-
-    const cssPath = path.join(layoutPath, 'main-layout.component.scss');
-    const cssContent = `.main-layout {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-.header {
-  // Header styles
-}
-
-.content {
-  flex: 1;
-  // Content styles
-}
-
-.footer {
-  // Footer styles
-}`;
-
-    try {
-        if (fs.existsSync(htmlPath)) {
-            fs.writeFileSync(htmlPath, htmlContent);
-        }
-        if (fs.existsSync(cssPath)) {
-            fs.writeFileSync(cssPath, cssContent);
-        }
-    } catch (error) {
-        console.warn('⚠️  Impossible de mettre à jour le template main-layout.');
-    }
-}
-
-/**
- * Remplace/Modifie les fichiers app.component.*
- */
-function replaceAppComponent(basePath) {
-    console.log('🔄 Mise à jour de app.component...');
-
-    const appComponentDir = basePath;
-
-    // Liste des fichiers à rechercher et supprimer
-    const possibleFiles = [
-        'app.component.html',
-        'app.html',
-        'app.spec.ts',
-        'app.component.css',
-        'app.css',
-        'app.scss',
-        'app.component.scss',
-        'app.component.sass',
-        'app.component.less',
-        'app.component.spec.ts'
-    ];
-
-    // Supprimer les fichiers existants
-    possibleFiles.forEach(file => {
-        const filePath = path.join(appComponentDir, file);
-        if (fs.existsSync(filePath)) {
-            fs.rmSync(filePath);
-            console.log(`🗑️  Supprimé: ${file}`);
-        }
-    });
-
-    // Chercher app.component.ts ou app.ts
-    const possibleTsFiles = ['app.component.ts', 'app.ts'];
-    let appTsPath = null;
-
-    for (const fileName of possibleTsFiles) {
-        const filePath = path.join(appComponentDir, fileName);
-        if (fs.existsSync(filePath)) {
-            appTsPath = filePath;
-            break;
-        }
-    }
-
-    // Si aucun fichier .ts n'existe, créer app.component.ts
-    if (!appTsPath) {
-        appTsPath = path.join(appComponentDir, 'app.ts');
-    }
-
-    // Créer le nouveau contenu
-    const appTsContent = `import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-
-@Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [RouterOutlet],
-  template: '<router-outlet />'
-})
-export class App {}
-`;
-
-    fs.writeFileSync(appTsPath, appTsContent);
-    console.log('✅ Fichier app.ts mis à jour.');
-}
-
-/**
- * Crée le fichier app.routes.ts s'il n'existe pas
- */
-function createAppRoutes(basePath) {
-    const routesPath = path.join(basePath, 'app.routes.ts');
-
-    if (fs.existsSync(routesPath)) {
-        console.log('ℹ️  Le fichier app.routes.ts existe déjà.');
-        return;
-    }
-
-    const routesContent = `import { Routes } from '@angular/router';
-
-export const routes: Routes = [
-  {
-    path: '',
-    loadComponent: () => import('./layout/main-layout/main-layout.component')
-      .then(m => m.MainLayoutComponent),
-    children: [
-      {
-        path: '',
-        redirectTo: 'home',
-        pathMatch: 'full'
-      }
-      // Ajoutez vos routes ici
-    ]
-  },
-  {
-    path: '**',
-    redirectTo: ''
-  }
-];
-`;
-
-    fs.writeFileSync(routesPath, routesContent);
-    console.log('✅ Fichier app.routes.ts créé.');
-}
-
-// Gestion des erreurs non capturées
+// Gestion des erreurs
 process.on('uncaughtException', (error) => {
     console.error('\n❌ Erreur inattendue:', error.message);
     process.exit(1);

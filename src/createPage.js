@@ -74,34 +74,17 @@ function updateModuleRoutes(modulePath, moduleName, pageName, folderName, classN
         let existingChildren = childrenMatch[2];
         const childrenEnd = childrenMatch[3];
 
-        // Trouver la route de redirection (celle avec redirectTo)
-        const redirectRouteMatch = existingChildren.match(/\{\s*path:\s*['"]['"]\s*,\s*redirectTo:[\s\S]*?\}/);
+        // Vérifier si le tableau children est vide
+        const trimmedChildren = existingChildren.trim();
 
         let newChildren;
-        if (redirectRouteMatch) {
-            // Si on a une route de redirection, insérer après
-            const redirectRoute = redirectRouteMatch[0];
-            const afterRedirect = existingChildren.indexOf(redirectRoute) + redirectRoute.length;
-
-            const beforeRedirect = existingChildren.substring(0, afterRedirect);
-            const afterRedirectContent = existingChildren.substring(afterRedirect);
-
-            // Vérifier s'il faut ajouter une virgule après la redirection
-            const needsComma = !beforeRedirect.trim().endsWith(',');
-
-            newChildren = beforeRedirect +
-                (needsComma ? ',' : '') +
-                '\n' + lazyLoadImport +
-                afterRedirectContent;
+        if (!trimmedChildren) {
+            // Tableau vide, ajouter directement
+            newChildren = '\n' + lazyLoadImport + '\n        ';
         } else {
-            // Pas de redirection, ajouter simplement
-            const trimmedChildren = existingChildren.trim();
-            if (trimmedChildren) {
-                const needsComma = !trimmedChildren.endsWith(',');
-                newChildren = existingChildren + (needsComma ? ',' : '') + '\n' + lazyLoadImport;
-            } else {
-                newChildren = '\n' + lazyLoadImport + '\n        ';
-            }
+            // Il y a déjà du contenu, ajouter avec une virgule
+            const needsComma = !trimmedChildren.endsWith(',');
+            newChildren = existingChildren + (needsComma ? ',' : '') + '\n' + lazyLoadImport;
         }
 
         // Reconstruire le contenu complet
@@ -123,131 +106,20 @@ function updateModuleRoutes(modulePath, moduleName, pageName, folderName, classN
  */
 function createRoutesFile(routesPath, moduleName) {
     const constantName = toConstantCase(moduleName);
-    const kebabName = toKebabCase(moduleName);
 
     const routesContent = `import { Routes } from '@angular/router';
 
 export const ${constantName}_ROUTES: Routes = [
     {
-        path: '${kebabName}',
+        path: '',
         loadComponent: () => import('../../layout/main-layout/main-layout').then(m => m.MainLayout),
-        children: [
-            {
-                path: '',
-                redirectTo: '${kebabName}',
-                pathMatch: 'full'
-            }
-        ]
+        children: []
     }
 ];
 `;
 
     fs.writeFileSync(routesPath, routesContent);
     console.log(`✅ Fichier routes.ts créé dans ${moduleName}/ (avec lazy loading)`);
-}
-
-/**
- * Met à jour le fichier app.routes.ts principal
- */
-function updateAppRoutes(moduleName) {
-    const appRoutesPath = path.join(process.cwd(), 'src', 'app', 'app.routes.ts');
-
-    if (!fs.existsSync(appRoutesPath)) {
-        console.warn('⚠️  Fichier app.routes.ts introuvable.');
-        return;
-    }
-
-    try {
-        let appRoutesContent = fs.readFileSync(appRoutesPath, 'utf8');
-
-        const constantName = toConstantCase(moduleName);
-        const importName = `${constantName}_ROUTES`;
-
-        // Vérifier si le module est déjà dans app.routes.ts
-        if (appRoutesContent.includes(`...${importName}`)) {
-            return; // Le module est déjà ajouté, pas besoin de log supplémentaire
-        }
-
-        // Ajouter l'import
-        const importStatement = `import { ${importName} } from './features/${moduleName}/routes';\n`;
-
-        // Vérifier si l'import existe déjà
-        if (!appRoutesContent.includes(importStatement.trim())) {
-            // Trouver la dernière ligne d'import
-            const lastImportIndex = appRoutesContent.lastIndexOf('import ');
-            const nextLineIndex = appRoutesContent.indexOf('\n', lastImportIndex);
-
-            appRoutesContent =
-                appRoutesContent.slice(0, nextLineIndex + 1) +
-                importStatement +
-                appRoutesContent.slice(nextLineIndex + 1);
-        }
-
-        // Ajouter la route dans le tableau
-        const routeSpread = `    ...${importName}`;
-
-        // Trouver l'emplacement pour ajouter la route
-        const routesMatch = appRoutesContent.match(/(export const routes: Routes = \[)([\s\S]*?)(\n\];)/);
-
-        if (!routesMatch) {
-            console.warn('⚠️  Structure app.routes.ts non reconnue pour l\'ajout automatique.');
-            return;
-        }
-
-        let existingRoutes = routesMatch[2].trim();
-
-        // Chercher une route wildcard (**)
-        const wildcardMatch = existingRoutes.match(/\{\s*path:\s*['"][*]{2}['"]/);
-
-        let updatedRoutes;
-        if (wildcardMatch) {
-            // Si on a un wildcard, insérer avant
-            const wildcardIndex = existingRoutes.indexOf(wildcardMatch[0]);
-
-            // Trouver le début de l'objet wildcard
-            let wildcardStart = wildcardIndex;
-            let braceCount = 0;
-
-            for (let i = wildcardIndex; i >= 0; i--) {
-                if (existingRoutes[i] === '}') {
-                    braceCount++;
-                } else if (existingRoutes[i] === '{') {
-                    if (braceCount === 0) {
-                        wildcardStart = i;
-                        break;
-                    }
-                    braceCount--;
-                }
-            }
-
-            const beforeWildcard = existingRoutes.substring(0, wildcardStart).trimEnd();
-            const wildcardAndAfter = existingRoutes.substring(wildcardStart);
-
-            const needsComma = beforeWildcard && !beforeWildcard.endsWith(',');
-            updatedRoutes = beforeWildcard + (needsComma ? ',' : '') + '\n' + routeSpread + ',\n    ' + wildcardAndAfter;
-
-        } else {
-            // Pas de wildcard, ajouter à la fin
-            if (existingRoutes) {
-                const needsComma = !existingRoutes.endsWith(',');
-                updatedRoutes = existingRoutes + (needsComma ? ',' : '') + '\n' + routeSpread;
-            } else {
-                updatedRoutes = '\n' + routeSpread;
-            }
-        }
-
-        // Remplacer le contenu
-        const updatedContent = appRoutesContent.replace(
-            /(export const routes: Routes = \[)([\s\S]*?)(\n\];)/,
-            `$1${updatedRoutes}\n$3`
-        );
-
-        fs.writeFileSync(appRoutesPath, updatedContent);
-        console.log(`✅ Module "${moduleName}" ajouté à app.routes.ts`);
-
-    } catch (error) {
-        console.error('❌ Erreur lors de la mise à jour de app.routes.ts:', error.message);
-    }
 }
 
 async function createPage() {
@@ -396,9 +268,6 @@ export class ${className} implements OnInit {
 
         // Mettre à jour le fichier routes.ts du module
         updateModuleRoutes(modulePath, moduleName, pageName, folderName, className);
-
-        // Mettre à jour app.routes.ts si nécessaire
-        updateAppRoutes(moduleName);
 
         console.log('\n📂 Fichiers créés:');
         console.log(`   ├── ${pageName}.page.ts (composant avec lazy loading)`);
