@@ -71,7 +71,7 @@ function createPackageStructure(modulePath, moduleName) {
 }
 
 /**
- * Crée le fichier routes.ts du module
+ * Crée le fichier routes.ts du module avec lazy loading
  */
 function createRoutesFile(modulePath, moduleName) {
     const routesPath = path.join(modulePath, 'routes.ts');
@@ -84,27 +84,25 @@ function createRoutesFile(modulePath, moduleName) {
     const constantName = toConstantCase(moduleName);
     const kebabName = toKebabCase(moduleName);
 
-    const routesContent = `
-    import { Routes } from '@angular/router';
-    import { MainLayout } from '../../layout/main-layout/main-layout';
+    const routesContent = `import { Routes } from '@angular/router';
 
-    export const ${constantName}_ROUTES: Routes = [
-        {
-            path: '${kebabName}',
-            component: MainLayout,
-            children: [
-                {
-                    path: '',
-                    redirectTo: '${kebabName}',
-                    pathMatch: 'full'
-                }
-            ]
-        }
-    ];
+export const ${constantName}_ROUTES: Routes = [
+    {
+        path: '${kebabName}',
+        loadComponent: () => import('../../layout/main-layout/main-layout').then(m => m.MainLayout),
+        children: [
+            {
+                path: '',
+                redirectTo: '${kebabName}',
+                pathMatch: 'full'
+            }
+        ]
+    }
+];
 `;
 
     fs.writeFileSync(routesPath, routesContent);
-    console.log(`✅ Créé: features/${moduleName}/routes.ts`);
+    console.log(`✅ Créé: features/${moduleName}/routes.ts (avec lazy loading)`);
 }
 
 /**
@@ -129,11 +127,11 @@ ${moduleName}/
 ├── components/     # Composants réutilisables du module
 ├── views/          # Pages/vues du module
 ├── models/         # Interfaces et types
-└── routes.ts       # Configuration des routes
+└── routes.ts       # Configuration des routes (lazy loading)
 \`\`\`
 
 ## Routes
-- \`/${toKebabCase(moduleName)}\` - Route principale
+- \`/${toKebabCase(moduleName)}\` - Route principale (lazy loaded)
 
 ## Commandes utiles
 \`\`\`bash
@@ -152,9 +150,6 @@ npm run g:model
     console.log(`✅ Créé: features/${moduleName}/README.md`);
 }
 
-/**
- * Met à jour le fichier app.routes.ts
- */
 /**
  * Met à jour le fichier app.routes.ts
  */
@@ -397,14 +392,14 @@ async function createPackage() {
     ├── components/
     ├── views/
     ├── models/
-    ├── routes.ts
+    ├── routes.ts (lazy loading)
     └── README.md
         `);
 
         console.log('💡 Prochaines étapes:');
         console.log(`   - Utilisez "npm run g:page" pour créer des pages dans ce module`);
         console.log(`   - Utilisez "npm run g:component" pour créer des composants`);
-        console.log(`   - Le module est accessible via: /${moduleName}\n`);
+        console.log(`   - Le module est accessible via: /${moduleName} (lazy loaded)\n`);
 
     } catch (error) {
         console.error('\n❌ Erreur lors de la création du package:', error.message);
