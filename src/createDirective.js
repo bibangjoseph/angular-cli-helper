@@ -3,44 +3,7 @@ import inquirer from 'inquirer';
 import fs from 'fs';
 import path from 'path';
 import shelljs from 'shelljs';
-
-/**
- * Formate le nom en kebab-case
- */
-function toKebabCase(str) {
-    return str
-        .trim()
-        .toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^a-z0-9\-]/g, '');
-}
-
-/**
- * Formate le nom en PascalCase
- */
-function toPascalCase(str) {
-    return str
-        .replace(/[-_]+/g, ' ')
-        .replace(/\s(.)/g, s => s.toUpperCase())
-        .replace(/\s/g, '')
-        .replace(/^(.)/, s => s.toUpperCase());
-}
-
-/**
- * Formate le nom en camelCase
- */
-function toCamelCase(str) {
-    const pascal = toPascalCase(str);
-    return pascal.charAt(0).toLowerCase() + pascal.slice(1);
-}
-
-/**
- * Vérifie si on est dans un projet Angular
- */
-function isAngularProject() {
-    const angularJsonPath = path.join(process.cwd(), 'angular.json');
-    return fs.existsSync(angularJsonPath);
-}
+import { toKebabCase, toPascalCase, toCamelCase, isAngularProject } from './utils.js';
 
 /**
  * Crée le fichier de directive

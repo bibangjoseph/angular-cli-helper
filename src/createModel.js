@@ -2,40 +2,8 @@
 import inquirer from 'inquirer';
 import fs from 'fs';
 import path from 'path';
+import { toKebabCase, toPascalCase, isAngularProject } from './utils.js';
 
-/**
- * Formate le nom en kebab-case
- */
-function toKebabCase(str) {
-    return str
-        .trim()
-        .toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^a-z0-9\-]/g, '');
-}
-
-/**
- * Formate le nom en PascalCase
- */
-function toPascalCase(str) {
-    return str
-        .replace(/[-_]+/g, ' ')
-        .replace(/\s(.)/g, s => s.toUpperCase())
-        .replace(/\s/g, '')
-        .replace(/^(.)/, s => s.toUpperCase());
-}
-
-/**
- * Vérifie si on est dans un projet Angular
- */
-function isAngularProject() {
-    const angularJsonPath = path.join(process.cwd(), 'angular.json');
-    return fs.existsSync(angularJsonPath);
-}
-
-/**
- * Vérifie si le module existe
- */
 function moduleExists(modulePath) {
     return fs.existsSync(modulePath);
 }

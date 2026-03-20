@@ -34,6 +34,9 @@ async function initProject() {
         // Modifier angular.json pour fileReplacements
         updateAngularJson();
 
+        // Ajouter l'alias @/* dans tsconfig.json
+        updateTsConfig();
+
         // Créer le service Core
         createCoreService(basePath);
 
@@ -346,7 +349,7 @@ export class CoreService {
 }
 
 /**
- * Crée le service API (version simplifiée pour la taille)
+ * Crée le service API
  */
 function createApiService(basePath) {
     console.log('⚡ Création du service API...');
@@ -359,11 +362,34 @@ function createApiService(basePath) {
         return;
     }
 
-    const apiServiceContent = `import { inject, Injectable, signal, computed } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Router } from '@angular/router';
-import { environment } from '../../../environments/environment';
-import { catchError, finalize, Observable, tap, throwError } from 'rxjs';
+    const apiServiceContent = `import {computed, inject, Injectable, Injector, signal} from '@angular/core';
+import {HttpClient, HttpErrorResponse, HttpHeaders, HttpParams} from '@angular/common/http';
+import {Router} from '@angular/router';
+import {environment} from '../../../environments/environment';
+import {catchError, finalize, Observable, tap, throwError} from 'rxjs';
+import {CoreService} from '@/core/services/core.service';
+
+export interface ApiRequestOptions {
+  headers?: HttpHeaders | { [header: string]: string | string[] };
+  params?: HttpParams | { [param: string]: string | string[] };
+  reportProgress?: boolean;
+  observe?: 'body';
+  withCredentials?: boolean;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  total: number;
+  links?: {
+    first?: string;
+    last?: string;
+    prev?: string;
+    next?: string;
+  };
+}
 
 @Injectable({
   providedIn: 'root'
@@ -371,7 +397,9 @@ import { catchError, finalize, Observable, tap, throwError } from 'rxjs';
 export class ApiService {
   private http = inject(HttpClient);
   private router = inject(Router);
-  
+  private injector = inject(Injector);
+  private coreService = inject(CoreService);
+
   private readonly apiUrl = environment.apiUrl;
   private readonly debugMode = !environment.production;
 
@@ -391,52 +419,115 @@ export class ApiService {
     this._backendErrors.set(errors);
   }
 
-  get<T>(url: string, options?: any): Observable<T> {
+  get<T>(url: string, options?: ApiRequestOptions): Observable<T> {
     this._loading.set(true);
     return this.http.get<T>(this.apiUrl + url, options).pipe(
-      tap(data => this.debugMode && console.log(\`[GET] \${url}\`, data)),
+      tap(data => {
+        if (this.debugMode) { console.log(\`[GET] \${url}\`, data); }
+      }),
       catchError(error => this.handleError(error, 'GET', url)),
       finalize(() => this._loading.set(false))
     );
   }
 
-  post<T>(url: string, data: any, options?: any): Observable<T> {
+  post<T>(url: string, data: any, options?: ApiRequestOptions): Observable<T> {
     this._loading.set(true);
     this.clearBackendErrors();
     return this.http.post<T>(this.apiUrl + url, data, options).pipe(
-      tap(data => this.debugMode && console.log(\`[POST] \${url}\`, data)),
+      tap(data => {
+        if (this.debugMode) { console.log(\`[POST] \${url}\`, { request: data, response: data }); }
+      }),
       catchError(error => this.handleError(error, 'POST', url)),
       finalize(() => this._loading.set(false))
     );
   }
 
-  put<T>(url: string, data: any, options?: any): Observable<T> {
+  put<T>(url: string, data: any, options?: ApiRequestOptions): Observable<T> {
     this._loading.set(true);
     this.clearBackendErrors();
     return this.http.put<T>(this.apiUrl + url, data, options).pipe(
-      tap(data => this.debugMode && console.log(\`[PUT] \${url}\`, data)),
+      tap(data => {
+        if (this.debugMode) { console.log(\`[PUT] \${url}\`, { request: data, response: data }); }
+      }),
       catchError(error => this.handleError(error, 'PUT', url)),
       finalize(() => this._loading.set(false))
     );
   }
 
-  patch<T>(url: string, data: any, options?: any): Observable<T> {
+  patch<T>(url: string, data: any, options?: ApiRequestOptions): Observable<T> {
     this._loading.set(true);
     this.clearBackendErrors();
     return this.http.patch<T>(this.apiUrl + url, data, options).pipe(
-      tap(data => this.debugMode && console.log(\`[PATCH] \${url}\`, data)),
+      tap(data => {
+        if (this.debugMode) { console.log(\`[PATCH] \${url}\`, { request: data, response: data }); }
+      }),
       catchError(error => this.handleError(error, 'PATCH', url)),
       finalize(() => this._loading.set(false))
     );
   }
 
-  delete<T>(url: string, options?: any): Observable<T> {
+  delete<T>(url: string, options?: ApiRequestOptions): Observable<T> {
     this._loading.set(true);
     return this.http.delete<T>(this.apiUrl + url, options).pipe(
-      tap(data => this.debugMode && console.log(\`[DELETE] \${url}\`, data)),
+      tap(data => {
+        if (this.debugMode) { console.log(\`[DELETE] \${url}\`, data); }
+      }),
       catchError(error => this.handleError(error, 'DELETE', url)),
       finalize(() => this._loading.set(false))
     );
+  }
+
+  getPaginate<T>(url: string): Observable<PaginatedResponse<T>> {
+    this._loading.set(true);
+    return this.http.get<PaginatedResponse<T>>(url).pipe(
+      tap(data => {
+        if (this.debugMode) { console.log('[GET Paginate]', { url, response: data }); }
+      }),
+      catchError(error => this.handleError(error, 'GET PAGINATE', url)),
+      finalize(() => this._loading.set(false))
+    );
+  }
+
+  uploadFile<T>(url: string, file: File, additionalData?: Record<string, any>): Observable<T> {
+    this._loading.set(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    if (additionalData) {
+      Object.keys(additionalData).forEach(key => formData.append(key, additionalData[key]));
+    }
+    return this.http.post<T>(this.apiUrl + url, formData).pipe(
+      tap(data => {
+        if (this.debugMode) { console.log(\`[UPLOAD] \${url}\`, { file: file.name, response: data }); }
+      }),
+      catchError(error => this.handleError(error, 'UPLOAD', url)),
+      finalize(() => this._loading.set(false))
+    );
+  }
+
+  downloadFile(url: string): Observable<Blob> {
+    this._loading.set(true);
+    return this.http.get(this.apiUrl + url, { responseType: 'blob' }).pipe(
+      tap(() => {
+        if (this.debugMode) { console.log(\`[DOWNLOAD] \${url}\`); }
+      }),
+      catchError(error => this.handleError(error, 'DOWNLOAD', url)),
+      finalize(() => this._loading.set(false))
+    );
+  }
+
+  getFile(url: string): Observable<Blob> {
+    return this.http.get(url, { responseType: 'blob' });
+  }
+
+  buildUrlWithParams(baseUrl: string, params: Record<string, any>): string {
+    const queryParams = new URLSearchParams();
+    Object.keys(params).forEach(key => {
+      if (params[key] !== null && params[key] !== undefined) {
+        queryParams.append(key, params[key].toString());
+      }
+    });
+    const queryString = queryParams.toString();
+    return queryString ? \`\${baseUrl}?\${queryString}\` : baseUrl;
   }
 
   private handleError(error: HttpErrorResponse, method: string, url: string): Observable<never> {
@@ -446,14 +537,16 @@ export class ApiService {
 
     switch (error.status) {
       case 0:
-        console.error('Connexion au serveur impossible.');
+        console.error('Connexion au serveur impossible. Vérifiez votre connexion internet.');
         break;
       case 401:
-        console.warn('Session expirée.');
-        this.router.navigate(['/login']);
+        console.warn('Session expirée. Redirection vers la page de connexion...');
+        this.coreService.clearToken();
+        this.router.navigate(['/']);
         break;
       case 422:
         this._backendErrors.set(error.error?.errors || {});
+        if (this.debugMode) { console.log('Erreurs de validation:', this._backendErrors()); }
         break;
       default:
         console.error(error.error?.message || 'Une erreur est survenue.');
@@ -584,11 +677,13 @@ export function HttpInterceptor(request: HttpRequest<any>, next: HttpHandlerFn) 
  * Crée ou met à jour app.config.ts
  */
 function createAppConfig(basePath) {
-    console.log('⚙️  Création/Mise à jour de app.config.ts...');
+    console.log('⚙️  Mise à jour de app.config.ts...');
 
     const configPath = path.join(basePath, 'app.config.ts');
 
-    const configContent = `import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+    // Si le fichier n'existe pas, créer un fichier minimal
+    if (!fs.existsSync(configPath)) {
+        const configContent = `import { ApplicationConfig } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 
@@ -597,7 +692,6 @@ import { HttpInterceptor } from './core/interceptors/http.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideHttpClient(
       withInterceptors([HttpInterceptor])
@@ -605,9 +699,56 @@ export const appConfig: ApplicationConfig = {
   ]
 };
 `;
+        fs.writeFileSync(configPath, configContent);
+        console.log('✅ Créé: app.config.ts');
+        return;
+    }
 
-    fs.writeFileSync(configPath, configContent);
-    console.log('✅ Créé: app.config.ts');
+    let content = fs.readFileSync(configPath, 'utf8');
+    let modified = false;
+
+    // Ajouter l'import HttpClient si absent
+    if (!content.includes('provideHttpClient')) {
+        const httpImport = `import { provideHttpClient, withInterceptors } from '@angular/common/http';`;
+        // Insérer après le dernier import existant
+        const lastImportMatch = [...content.matchAll(/^import .+;$/gm)].pop();
+        if (lastImportMatch) {
+            const insertPos = lastImportMatch.index + lastImportMatch[0].length;
+            content = content.slice(0, insertPos) + '\n' + httpImport + content.slice(insertPos);
+        }
+        modified = true;
+    }
+
+    // Ajouter l'import de l'intercepteur si absent
+    if (!content.includes('HttpInterceptor')) {
+        const interceptorImport = `import { HttpInterceptor } from './core/interceptors/http.interceptor';`;
+        const lastImportMatch = [...content.matchAll(/^import .+;$/gm)].pop();
+        if (lastImportMatch) {
+            const insertPos = lastImportMatch.index + lastImportMatch[0].length;
+            content = content.slice(0, insertPos) + '\n' + interceptorImport + content.slice(insertPos);
+        }
+        modified = true;
+    }
+
+    // Ajouter provideHttpClient dans le tableau providers si absent
+    if (!content.includes('provideHttpClient')) {
+        const providersMatch = content.match(/(providers:\s*\[)([\s\S]*?)(\n\s*\])/);
+        if (providersMatch) {
+            const providerEntry = `\n    provideHttpClient(\n      withInterceptors([HttpInterceptor])\n    )`;
+            const existingProviders = providersMatch[2];
+            const needsComma = existingProviders.trim().length > 0 && !existingProviders.trimEnd().endsWith(',');
+            const newProviders = existingProviders + (needsComma ? ',' : '') + providerEntry;
+            content = content.replace(providersMatch[0], providersMatch[1] + newProviders + providersMatch[3]);
+        }
+        modified = true;
+    }
+
+    if (modified) {
+        fs.writeFileSync(configPath, content);
+        console.log('✅ app.config.ts mis à jour (HttpClient + intercepteur ajoutés).');
+    } else {
+        console.log('ℹ️  app.config.ts déjà configuré avec HttpClient et l\'intercepteur.');
+    }
 }
 
 /**
@@ -834,7 +975,8 @@ export const ${constantName}: Routes = [
         path: '',
         loadComponent: () => import('../../layout/main-layout/main-layout').then(m => m.MainLayout),
         canActivate: [${guardType}],
-        children: []
+        children: [
+        ]
     }
 ];
 `;
@@ -941,6 +1083,46 @@ function updateAngularJson() {
 
     } catch (error) {
         console.error('❌ Erreur lors de la mise à jour de angular.json:', error.message);
+    }
+}
+
+/**
+ * Met à jour tsconfig.json pour ajouter l'alias @/* → src/app/*
+ */
+function updateTsConfig() {
+    console.log('⚙️  Mise à jour de tsconfig.json (alias @)...');
+
+    const tsconfigPath = path.join(process.cwd(), 'tsconfig.json');
+
+    if (!fs.existsSync(tsconfigPath)) {
+        console.warn('⚠️  Fichier tsconfig.json introuvable.');
+        return;
+    }
+
+    try {
+        const tsconfig = JSON.parse(fs.readFileSync(tsconfigPath, 'utf8'));
+
+        if (!tsconfig.compilerOptions) {
+            tsconfig.compilerOptions = {};
+        }
+
+        if (!tsconfig.compilerOptions.paths) {
+            tsconfig.compilerOptions.paths = {};
+        }
+
+        if (tsconfig.compilerOptions.paths['@/*']) {
+            console.log('ℹ️  Alias "@/*" déjà configuré dans tsconfig.json.');
+            return;
+        }
+
+        tsconfig.compilerOptions.baseUrl = './';
+        tsconfig.compilerOptions.paths['@/*'] = ['src/app/*'];
+
+        fs.writeFileSync(tsconfigPath, JSON.stringify(tsconfig, null, 2));
+        console.log('✅ tsconfig.json mis à jour (alias @/* → src/app/*).');
+
+    } catch (error) {
+        console.error('❌ Erreur lors de la mise à jour de tsconfig.json:', error.message);
     }
 }
 

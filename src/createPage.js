@@ -3,97 +3,73 @@ import inquirer from 'inquirer';
 import fs from 'fs';
 import path from 'path';
 import shelljs from 'shelljs';
+import { formatFolderName, toPascalCase, toKebabCase, toConstantCase } from './utils.js';
 
-function formatFolderName(name) {
-    return name.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
-}
-
-function toPascalCase(str) {
-    return str
-        .replace(/[-_]+/g, ' ')
-        .replace(/\s(.)/g, s => s.toUpperCase())
-        .replace(/\s/g, '')
-        .replace(/^(.)/, s => s.toUpperCase());
-}
-
-function toKebabCase(str) {
-    return str
-        .replace(/([a-z])([A-Z])/g, '$1-$2')
-        .replace(/[\s_]+/g, '-')
-        .toLowerCase();
-}
-
-function toConstantCase(str) {
-    return str
-        .replace(/([a-z])([A-Z])/g, '$1_$2')
-        .replace(/[-\s]+/g, '_')
-        .toUpperCase();
+/**
+ * Liste les modules disponibles dans src/app/features
+ */
+function getAvailableModules() {
+    const featuresPath = path.join(process.cwd(), 'src', 'app', 'features');
+    if (!fs.existsSync(featuresPath)) return [];
+    return fs.readdirSync(featuresPath).filter(entry => {
+        return fs.statSync(path.join(featuresPath, entry)).isDirectory();
+    });
 }
 
 /**
  * Met à jour le fichier routes.ts du module avec la nouvelle page (lazy loading)
  */
-function updateModuleRoutes(modulePath, moduleName, pageName, folderName, className) {
+function updateModuleRoutes(modulePath, moduleName, folderName, className) {
     const routesPath = path.join(modulePath, 'routes.ts');
 
-    // Vérifier si le fichier routes.ts existe
     if (!fs.existsSync(routesPath)) {
         console.log('⚠️  Fichier routes.ts introuvable, création...');
         createRoutesFile(routesPath, moduleName);
     }
 
     try {
-        let routesContent = fs.readFileSync(routesPath, 'utf8');
+        let content = fs.readFileSync(routesPath, 'utf8');
 
-        // Créer la route path à partir du nom de la page
         const routePath = toKebabCase(folderName);
 
-        // Créer l'import lazy loading avec l'indentation correcte
-        const lazyLoadImport = `            {
-                path: '${routePath}',
-                loadComponent: () => import('./views/${folderName}/${pageName}.page').then(m => m.${className})
-            }`;
-
         // Vérifier si la route existe déjà
-        if (routesContent.includes(`path: '${routePath}'`) && routesContent.includes(folderName)) {
+        if (content.includes(`path: '${routePath}'`) && content.includes(folderName)) {
             console.log(`ℹ️  La route "${routePath}" existe déjà dans routes.ts`);
             return;
         }
 
-        // Trouver la section children
-        const childrenMatch = routesContent.match(/(children:\s*\[)([\s\S]*?)(\n\s*\])/);
+        const newRoute = `            {
+                path: '${routePath}',
+                loadComponent: () => import('./views/${folderName}/${folderName}.page').then(m => m.${className})
+            }`;
+
+        // Trouver le tableau children
+        const childrenMatch = content.match(/(children:\s*\[)([\s\S]*?)(\n\s*\])/);
 
         if (!childrenMatch) {
-            console.error('❌ Format du fichier routes.ts non reconnu.');
-            console.log('💡 Le fichier routes.ts doit contenir une propriété "children"');
+            console.error('❌ Format du fichier routes.ts non reconnu (propriété "children" introuvable).');
             return;
         }
 
-        const fullMatch = childrenMatch[0];
-        const childrenStart = childrenMatch[1];
-        let existingChildren = childrenMatch[2];
-        const childrenEnd = childrenMatch[3];
+        const before = childrenMatch[1];
+        const existing = childrenMatch[2];
+        const closing = childrenMatch[3];
 
-        // Vérifier si le tableau children est vide
-        const trimmedChildren = existingChildren.trim();
+        const trimmed = existing.trim();
+        let newContent;
 
-        let newChildren;
-        if (!trimmedChildren) {
-            // Tableau vide, ajouter directement
-            newChildren = '\n' + lazyLoadImport + '\n        ';
+        if (!trimmed) {
+            // Tableau vide
+            newContent = before + '\n' + newRoute + '\n        ' + closing.trimStart();
         } else {
-            // Il y a déjà du contenu, ajouter avec une virgule
-            const needsComma = !trimmedChildren.endsWith(',');
-            newChildren = existingChildren + (needsComma ? ',' : '') + '\n' + lazyLoadImport;
+            // Ajouter une virgule à la dernière entrée si absente, puis insérer
+            const withComma = trimmed.endsWith(',') ? existing : existing.replace(/(\s*)$/, ',$1');
+            newContent = before + withComma + '\n' + newRoute + closing;
         }
 
-        // Reconstruire le contenu complet
-        const newChildrenSection = childrenStart + newChildren + childrenEnd;
-        const updatedContent = routesContent.replace(fullMatch, newChildrenSection);
-
-        // Écrire le fichier mis à jour
-        fs.writeFileSync(routesPath, updatedContent);
-        console.log(`✅ Route "${routePath}" ajoutée à ${moduleName}/routes.ts (lazy loaded)`);
+        content = content.replace(childrenMatch[0], newContent);
+        fs.writeFileSync(routesPath, content);
+        console.log(`✅ Route "${routePath}" ajoutée à ${moduleName}/routes.ts`);
 
     } catch (error) {
         console.error('❌ Erreur lors de la mise à jour de routes.ts:', error.message);
@@ -102,37 +78,42 @@ function updateModuleRoutes(modulePath, moduleName, pageName, folderName, classN
 }
 
 /**
- * Crée le fichier routes.ts s'il n'existe pas (avec lazy loading)
+ * Crée le fichier routes.ts s'il n'existe pas
  */
 function createRoutesFile(routesPath, moduleName) {
     const constantName = toConstantCase(moduleName);
-
-    const routesContent = `import { Routes } from '@angular/router';
+    const content = `import { Routes } from '@angular/router';
 
 export const ${constantName}_ROUTES: Routes = [
     {
         path: '',
         loadComponent: () => import('../../layout/main-layout/main-layout').then(m => m.MainLayout),
-        children: []
+        children: [
+        ]
     }
 ];
 `;
-
-    fs.writeFileSync(routesPath, routesContent);
-    console.log(`✅ Fichier routes.ts créé dans ${moduleName}/ (avec lazy loading)`);
+    fs.writeFileSync(routesPath, content);
+    console.log(`✅ Fichier routes.ts créé dans ${moduleName}/`);
 }
 
 async function createPage() {
     console.log('\n🚀 Angular CLI Helper - Création de page\n');
+
+    const modules = getAvailableModules();
+
+    if (modules.length === 0) {
+        console.error('❌ Aucun module trouvé dans src/app/features.');
+        console.log('💡 Créez d\'abord un module avec: npm run g:package\n');
+        process.exit(1);
+    }
 
     const { pageName, moduleName } = await inquirer.prompt([
         {
             name: 'pageName',
             message: 'Quel est le nom de la page ?',
             validate: input => {
-                if (!input) {
-                    return 'Le nom de la page est requis.';
-                }
+                if (!input) return 'Le nom de la page est requis.';
                 if (!/^[a-zA-Z0-9\s\-_]+$/.test(input)) {
                     return 'Le nom ne peut contenir que des lettres, chiffres, espaces, tirets et underscores.';
                 }
@@ -140,31 +121,19 @@ async function createPage() {
             }
         },
         {
+            type: 'list',
             name: 'moduleName',
             message: 'Dans quel module ?',
-            validate: input => {
-                if (!input) {
-                    return 'Le nom du module est requis.';
-                }
-                return true;
-            }
+            choices: modules
         }
     ]);
 
     const folderName = formatFolderName(pageName);
-    const modulePath = path.join('src', 'app', 'features', moduleName);
-
-    if (!fs.existsSync(modulePath)) {
-        console.error(`\n❌ Le module "${moduleName}" n'existe pas dans src/app/features.`);
-        console.log(`💡 Créez d'abord le module avec: npm run g:package\n`);
-        process.exit(1);
-    }
-
+    const modulePath = path.join(process.cwd(), 'src', 'app', 'features', moduleName);
     const basePath = path.join(modulePath, 'views', folderName);
 
-    // Vérifier si la page existe déjà
     if (fs.existsSync(basePath)) {
-        console.error(`\n❌ La page "${pageName}" existe déjà dans ${moduleName}/views/\n`);
+        console.error(`\n❌ La page "${folderName}" existe déjà dans ${moduleName}/views/\n`);
         process.exit(1);
     }
 
@@ -173,113 +142,38 @@ async function createPage() {
 
         const selector = `app-${folderName}`;
         const className = `${toPascalCase(pageName)}Page`;
-        const tsFile = path.join(basePath, `${pageName}.page.ts`);
-        const htmlFile = path.join(basePath, `${pageName}.page.html`);
-        const scssFile = path.join(basePath, `${pageName}.page.scss`);
+        const tsFile = path.join(basePath, `${folderName}.page.ts`);
+        const htmlFile = path.join(basePath, `${folderName}.page.html`);
+        const scssFile = path.join(basePath, `${folderName}.page.scss`);
 
-        // Créer le fichier .ts avec ApiService et ngOnInit
-        const tsContent = `import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ApiService } from '../../../../core/services/api.service';
+        const tsContent = `import { Component, inject } from '@angular/core';
+import { ApiService } from '@/core/services/api.service';
 
 @Component({
   selector: '${selector}',
   standalone: true,
-  imports: [CommonModule],
-  templateUrl: './${pageName}.page.html',
-  styleUrls: ['./${pageName}.page.scss']
+  imports: [],
+  templateUrl: './${folderName}.page.html',
+  styleUrls: ['./${folderName}.page.scss']
 })
-export class ${className} implements OnInit {
+export class ${className} {
   private apiService = inject(ApiService);
-
-  // Signaux du service API
-  isLoading = this.apiService.loading;
-  backendErrors = this.apiService.backendErrors;
-
-  ngOnInit(): void {
-    this.loadData();
-  }
-
-  /**
-   * Charge les données initiales de la page
-   */
-  private loadData(): void {
-    // TODO: Implémenter le chargement des données
-    // Exemple:
-    // this.apiService.get<YourDataType>('endpoint').subscribe({
-    //   next: (data) => console.log('Données chargées', data),
-    //   error: (err) => console.error('Erreur', err)
-    // });
-  }
 }
 `;
         fs.writeFileSync(tsFile, tsContent);
-
-        // Créer le fichier .html avec loader
-        const htmlContent = `<div class="${folderName}-container">
-  <!-- Loader -->
-  @if (isLoading()) {
-    <div class="loader">
-      <span class="loading loading-spinner loading-lg"></span>
-      <p>Chargement...</p>
-    </div>
-  }
-
-  <!-- Contenu principal -->
-  @if (!isLoading()) {
-    <div class="content">
-      <h1 class="text-2xl font-bold">${toPascalCase(pageName)}</h1>
-      <p>${selector} works!</p>
-    </div>
-  }
-
-  <!-- Affichage des erreurs backend -->
-  @if (backendErrors()) {
-    <div class="alert alert-error mt-4">
-      <span>{{ backendErrors() }}</span>
-    </div>
-  }
-</div>
-`;
-        fs.writeFileSync(htmlFile, htmlContent);
-
-        // Créer le fichier .scss avec styles de base
-        const scssContent = `.${folderName}-container {
-  padding: 1rem;
-
-  .loader {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    min-height: 200px;
-  }
-
-  .content {
-    // Ajoutez vos styles ici
-  }
-}
-`;
-        fs.writeFileSync(scssFile, scssContent);
+        fs.writeFileSync(htmlFile, `<p>${selector} works!</p>\n`);
+        fs.writeFileSync(scssFile, '');
 
         console.log(`\n✅ Page "${pageName}" créée avec succès!`);
         console.log(`📁 Emplacement: ${basePath}`);
 
-        // Mettre à jour le fichier routes.ts du module
-        updateModuleRoutes(modulePath, moduleName, pageName, folderName, className);
+        updateModuleRoutes(modulePath, moduleName, folderName, className);
 
         console.log('\n📂 Fichiers créés:');
-        console.log(`   ├── ${pageName}.page.ts (composant avec lazy loading)`);
-        console.log(`   ├── ${pageName}.page.html (template)`);
-        console.log(`   └── ${pageName}.page.scss (styles)`);
-
-        console.log('\n💡 Prochaines étapes:');
-        console.log(`   - La page est accessible via: /${toKebabCase(moduleName)}/${toKebabCase(folderName)}`);
-        console.log(`   - Le service API est déjà importé et prêt à l'emploi`);
-        console.log(`   - Implémentez la logique dans loadData() pour charger vos données`);
-        console.log(`   - Modifiez le template dans: ${htmlFile}`);
-        console.log(`   - Ajoutez des styles dans: ${scssFile}\n`);
+        console.log(`   ├── ${folderName}.page.ts`);
+        console.log(`   ├── ${folderName}.page.html`);
+        console.log(`   └── ${folderName}.page.scss`);
+        console.log(`\n💡 Accessible via: /${toKebabCase(moduleName)}/${toKebabCase(folderName)}\n`);
 
     } catch (error) {
         console.error('\n❌ Erreur lors de la création de la page:', error.message);
@@ -287,7 +181,6 @@ export class ${className} implements OnInit {
     }
 }
 
-// Gestion des erreurs
 process.on('uncaughtException', (error) => {
     console.error('\n❌ Erreur inattendue:', error.message);
     process.exit(1);
@@ -298,5 +191,4 @@ process.on('unhandledRejection', (reason) => {
     process.exit(1);
 });
 
-// Exécution
 createPage();

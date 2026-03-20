@@ -3,34 +3,7 @@ import inquirer from 'inquirer';
 import shelljs from 'shelljs';
 import fs from 'fs';
 import path from 'path';
-
-function toKebabCase(str) {
-    return str
-        .trim()
-        .toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^a-z0-9\-]/g, '');
-}
-
-function toConstantCase(str) {
-    return str
-        .replace(/([a-z])([A-Z])/g, '$1_$2')
-        .replace(/[-\s]+/g, '_')
-        .toUpperCase();
-}
-
-function toPascalCase(str) {
-    return str
-        .replace(/[-_]+/g, ' ')
-        .replace(/\s(.)/g, s => s.toUpperCase())
-        .replace(/\s/g, '')
-        .replace(/^(.)/, s => s.toUpperCase());
-}
-
-function isAngularProject() {
-    const angularJsonPath = path.join(process.cwd(), 'angular.json');
-    return fs.existsSync(angularJsonPath);
-}
+import { toKebabCase, toConstantCase, toPascalCase, isAngularProject } from './utils.js';
 
 function createPackageStructure(modulePath, moduleName) {
     console.log(`\n📦 Création du package "${moduleName}"...\n`);
@@ -79,7 +52,8 @@ export const ${constantName}_ROUTES: Routes = [
         path: '',
         loadComponent: () => import('../../layout/main-layout/main-layout').then(m => m.MainLayout),
 ${canActivateLine}
-        children: []
+        children: [
+        ]
     }
 ];
 `;

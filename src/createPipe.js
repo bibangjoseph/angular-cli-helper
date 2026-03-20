@@ -3,6 +3,7 @@ import inquirer from 'inquirer';
 import shelljs from 'shelljs';
 import path from 'path';
 import fs from 'fs';
+import { toPascalCase } from './utils.js';
 
 async function createPipe() {
     const { pipeName } = await inquirer.prompt([
@@ -17,7 +18,7 @@ async function createPipe() {
     shelljs.mkdir('-p', folder);
 
     const filePath = path.join(folder, `${pipeName}.pipe.ts`);
-    const className = `${capitalize(pipeName)}Pipe`;
+    const className = `${toPascalCase(pipeName)}Pipe`;
 
     const content = `import { Pipe, PipeTransform } from '@angular/core';
 
@@ -33,10 +34,6 @@ export class ${className} implements PipeTransform {
 
     fs.writeFileSync(filePath, content);
     console.log(`✅ Pipe créé : ${filePath}`);
-}
-
-function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 createPipe();

@@ -1,37 +1,38 @@
-Voici le README mis à jour avec toutes les nouvelles fonctionnalités :
-
 # Angular CLI Helper
 
 [![npm version](https://badge.fury.io/js/angular-cli-helper.svg)](https://www.npmjs.com/package/angular-cli-helper)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Downloads](https://img.shields.io/npm/dm/angular-cli-helper.svg)](https://www.npmjs.com/package/angular-cli-helper)
 
-**Angular CLI Helper** est une bibliothèque CLI conçue pour simplifier la gestion des projets Angular standalone (Angular 17+). Elle permet de générer rapidement des composants, services, modèles, pages, packages, guards, directives, pipes, et même d'initialiser une structure de projet professionnelle avec **service API**, **authentification** et **guards** intégrés.
+**Angular CLI Helper** is a CLI tool designed to speed up development on Angular standalone projects (Angular 17+). It scaffolds components, services, models, pages, packages, guards, directives, and pipes — and can initialize a full project structure with a built-in **API service**, **authentication system**, and **HTTP interceptor**.
 
 ---
 
-## ✨ Pourquoi utiliser Angular CLI Helper ?
+## ✨ Why Angular CLI Helper?
 
-- 🚀 **Gain de temps** : Génération automatique de code boilerplate
-- 📁 **Structure cohérente** : Architecture de projet standardisée et professionnelle
-- 🎯 **Best practices** : Respect des conventions Angular et patterns modernes
-- 🔧 **Service API intégré** : Service API complet avec gestion d'erreurs et signals
-- 🔐 **Authentification prête** : Guards, CoreService et intercepteur HTTP configurés
-- 💡 **Intuitif** : Interface en ligne de commande interactive
-- ⚡ **Lazy loading** : Routes configurées automatiquement avec `loadChildren`
-- 🛡️ **Sécurité** : Protection des routes avec AuthGuard et GuestGuard
+- 🚀 **Save time** — Automatic boilerplate generation
+- 📁 **Consistent structure** — Standardized, professional project architecture
+- 🎯 **Best practices** — Follows Angular conventions and modern patterns
+- 🔧 **Built-in API service** — Full HTTP service with error handling and signals
+- 🔐 **Auth ready** — Guards, CoreService, and HTTP interceptor pre-configured
+- 💡 **Intuitive** — Interactive CLI prompts
+- ⚡ **Lazy loading** — Routes automatically configured with `loadComponent` / `loadChildren`
+- 🛡️ **Route protection** — AuthGuard and GuestGuard included
+- 🔗 **Path alias** — `@/*` alias automatically added to `tsconfig.json`
 
 ---
 
-## 📦 Compatibilité des versions
+## 📦 Version compatibility
 
-| Version de la librairie | Version Angular recommandée | Architecture utilisée                  |
-|-------------------------|-----------------------------|----------------------------------------|
-| `^5.x+`                 | Angular 17 - 21+            | Standalone + `features/` + Auth        |
-| `^4.x+`                 | Angular 17 - 20+            | Modules classiques                     |
-| `^2.x`                  | Angular 16+                 | Modules classiques                     |
-| `^1.x`                  | Angular <= 15               | Modules classiques                     |
+| Library version | Recommended Angular | Architecture                        |
+|-----------------|---------------------|-------------------------------------|
+| `^6.x`          | Angular 17 – 21+    | Standalone + `features/` + Auth + `@/` alias |
+| `^5.x`          | Angular 17 – 21+    | Standalone + `features/` + Auth     |
+| `^4.x`          | Angular 17 – 20+    | Classic modules                     |
+| `^2.x`          | Angular 16+         | Classic modules                     |
+| `^1.x`          | Angular ≤ 15        | Classic modules                     |
 
+---
 
 ## 🚀 Installation
 
@@ -39,124 +40,101 @@ Voici le README mis à jour avec toutes les nouvelles fonctionnalités :
 npm install angular-cli-helper --save-dev
 ```
 
-Ajoutez les scripts dans votre `package.json` :
+Add the scripts to your project's `package.json`:
+
 ```json
 "scripts": {
-  "g:init": "init-project",
+  "g:init":      "init-project",
   "g:component": "create-component",
-  "g:service": "create-service",
-  "g:model": "create-model",
-  "g:page": "create-page",
-  "g:package": "create-package",
-  "g:guard": "create-guard",
+  "g:service":   "create-service",
+  "g:model":     "create-model",
+  "g:page":      "create-page",
+  "g:package":   "create-package",
+  "g:guard":     "create-guard",
   "g:directive": "create-directive",
-  "g:pipe": "create-pipe",
-  "help": "angular-cli-help"
+  "g:pipe":      "create-pipe",
+  "help":        "angular-cli-help"
 }
 ```
 
-Puis exécutez avec :
+Then run any generator with:
+
 ```bash
 npm run g:init
 npm run g:package
-npm run g:service
+npm run g:page
 # etc.
 ```
 
 ---
 
-## 📚 Guide d'utilisation
+## 📚 Usage guide
 
-### 1. 🎬 Initialiser un nouveau projet
+### 1. 🎬 Initialize a new project
 
 ```bash
 npm run g:init
 ```
 
-**Qu'est-ce que ça fait ?**
-
-Crée automatiquement la structure suivante dans votre projet Angular :
+Automatically creates the following structure inside your Angular project:
 
 ```
 src/
 ├── app/
-│   ├── core/                         # Fonctionnalités centrales
+│   ├── core/
 │   │   ├── services/
-│   │   │   ├── api.service.ts       # Service API complet
-│   │   │   └── core.service.ts      # Gestion authentification
+│   │   │   ├── api.service.ts        # Full HTTP service
+│   │   │   └── core.service.ts       # Auth & user management
 │   │   ├── guards/
-│   │   │   ├── auth.guard.ts        # Protection routes authentifiées
-│   │   │   └── guest.guard.ts       # Protection routes publiques
+│   │   │   ├── auth.guard.ts         # Protects authenticated routes
+│   │   │   └── guest.guard.ts        # Protects public routes
 │   │   └── interceptors/
-│   │       └── http.interceptor.ts  # Injection token JWT
-│   ├── shared/                       # Éléments partagés
+│   │       └── http.interceptor.ts   # Auto JWT injection
+│   ├── shared/
 │   │   ├── components/
 │   │   ├── directives/
 │   │   └── pipes/
 │   ├── layout/
-│   │   └── main-layout/             # Layout principal
-│   ├── features/                     # Modules métier
-│   │   ├── auth/                    # Module authentification (par défaut)
-│   │   └── dashboard/               # Module dashboard (par défaut)
+│   │   └── main-layout/              # Main layout component
+│   ├── features/
+│   │   ├── auth/                     # Default auth module (GuestGuard)
+│   │   └── dashboard/                # Default dashboard module (AuthGuard)
 │   ├── app.ts
-│   ├── app.config.ts                # Configuration avec intercepteur
-│   └── app.routes.ts                # Routes avec loadChildren
+│   ├── app.config.ts                 # HttpClient + interceptor configured
+│   └── app.routes.ts                 # Lazy-loaded routes
 └── environments/
-    ├── environment.ts                # Configuration développement
-    └── environment.prod.ts           # Configuration production
+    ├── environment.ts                 # Development config
+    └── environment.prod.ts            # Production config
 ```
 
-**Ce qui est créé automatiquement :**
-
-#### ✅ Service API complet
-- Méthodes HTTP (GET, POST, PUT, PATCH, DELETE)
-- Gestion d'erreurs centralisée
-- Signals pour `loading` et `backendErrors`
-- Upload/Download de fichiers
-- Support de la pagination
-
-#### ✅ Système d'authentification
-- **CoreService** : Gestion du token et de l'utilisateur
-- **AuthGuard** : Protection des routes authentifiées
-- **GuestGuard** : Redirection des utilisateurs connectés
-- **HttpInterceptor** : Injection automatique du token JWT
-
-#### ✅ Modules par défaut
-- **auth** : Module pour login, register, etc. (protégé par GuestGuard)
-- **dashboard** : Module pour l'espace utilisateur (protégé par AuthGuard)
-
-#### ✅ Configuration complète
-- Fichiers d'environnement (local et production)
-- Configuration angular.json avec fileReplacements
-- app.config.ts avec intercepteur HTTP configuré
-- Routes avec lazy loading (`loadChildren`)
+**Also configures:**
+- `angular.json` — `fileReplacements` for production build
+- `tsconfig.json` — `@/*` path alias pointing to `src/app/*`
+- `app.config.ts` — `provideHttpClient` + interceptor added (existing file preserved)
 
 ---
 
-### 2. 🔐 Système d'authentification
+### 2. 🔐 Authentication system
 
 #### CoreService
 
-Le `CoreService` gère l'authentification de l'utilisateur :
+Manages token and current user with Angular signals:
 
 ```typescript
 import { inject } from '@angular/core';
-import { CoreService } from './core/services/core.service';
+import { CoreService } from '@/core/services/core.service';
 
 export class MyComponent {
   private coreService = inject(CoreService);
-  
-  // Vérifier si l'utilisateur est authentifié
-  isAuth = this.coreService.isAuthenticated;
-  
-  // Obtenir l'utilisateur actuel
-  currentUser = this.coreService.currentUser;
-  
+
+  isAuth      = this.coreService.isAuthenticated; // computed signal
+  currentUser = this.coreService.currentUser;     // computed signal
+
   login(token: string, user: any) {
     this.coreService.setToken(token);
     this.coreService.setCurrentUser(user);
   }
-  
+
   logout() {
     this.coreService.logout();
   }
@@ -165,74 +143,64 @@ export class MyComponent {
 
 #### Guards
 
-**AuthGuard** - Protège les routes authentifiées :
+**AuthGuard** — protects authenticated routes:
 ```typescript
 {
   path: 'dashboard',
   loadChildren: () => import('./features/dashboard/routes').then(m => m.DASHBOARD_ROUTES),
-  canActivate: [AuthGuard] // Redirige vers /login si non authentifié
+  canActivate: [AuthGuard] // redirects to / if not authenticated
 }
 ```
 
-**GuestGuard** - Protège les routes publiques :
+**GuestGuard** — protects public routes:
 ```typescript
 {
-  path: 'login',
+  path: '',
   loadChildren: () => import('./features/auth/routes').then(m => m.AUTH_ROUTES),
-  canActivate: [GuestGuard] // Redirige vers /dashboard si authentifié
+  canActivate: [GuestGuard] // redirects to /dashboard if already authenticated
 }
 ```
 
-#### Intercepteur HTTP
+#### HTTP Interceptor
 
-L'intercepteur injecte automatiquement le token JWT dans les requêtes API :
+Automatically injects the JWT token into every API request:
 
 ```typescript
-// Dans app.config.ts (déjà configuré)
-export const appConfig: ApplicationConfig = {
-  providers: [
-    provideHttpClient(
-      withInterceptors([HttpInterceptor])
-    )
-  ]
-};
-```
+// Already configured in app.config.ts
+provideHttpClient(withInterceptors([HttpInterceptor]))
 
-**Fonctionnement :**
-- Détecte les requêtes vers votre API (selon `environment.apiUrl`)
-- Injecte automatiquement `Authorization: Bearer <token>`
-- Ne modifie pas les autres requêtes
+// Your requests become:
+// GET https://api.yourdomain.com/api/products
+// Headers: { Authorization: 'Bearer <token>' }
+```
 
 ---
 
-### 3. 📦 Créer un package complet
+### 3. 📦 Create a module (package)
 
 ```bash
 npm run g:package
 ```
 
-**Prompts :**
 ```
-? Nom du package : products
-? Quel guard voulez-vous utiliser ?
-  ❯ AuthGuard (pour les routes authentifiées)
-    GuestGuard (pour les routes publiques)
-    Aucun guard
-```
-
-**Résultat :**
-```
-✅ Créé : features/products/
-   ├── components/
-   ├── views/
-   ├── models/
-   ├── routes.ts                  # Routes avec guard sélectionné
-   └── README.md
-
-✅ app.routes.ts mis à jour automatiquement
+? Package name: products
+? Which guard do you want to use?
+  ❯ AuthGuard (authenticated routes)
+    GuestGuard (public routes)
+    No guard
 ```
 
-**Code généré dans `routes.ts` (avec AuthGuard) :**
+**Generated structure:**
+```
+features/products/
+├── components/
+├── views/
+├── models/
+├── routes.ts       # With selected guard + lazy loading
+└── README.md
+```
+
+**Generated `routes.ts`:**
 ```typescript
 import { Routes } from '@angular/router';
 import { AuthGuard } from '../../core/guards/auth.guard';
@@ -240,836 +208,343 @@ import { AuthGuard } from '../../core/guards/auth.guard';
 export const PRODUCTS_ROUTES: Routes = [
     {
         path: '',
-        loadComponent: () => import('../../layout/main-layout/main-layout')
-          .then(m => m.MainLayout),
-        canActivate: [AuthGuard],
-        children: []
-    }
-];
-```
-
-**Routes ajoutées dans `app.routes.ts` :**
-```typescript
-export const routes: Routes = [
-    {
-        path: '',
-        loadChildren: () => import('./features/auth/routes').then(m => m.AUTH_ROUTES)
-    },
-    {
-        path: 'dashboard',
-        loadChildren: () => import('./features/dashboard/routes').then(m => m.DASHBOARD_ROUTES)
-    },
-    {
-        path: 'products',
-        loadChildren: () => import('./features/products/routes').then(m => m.PRODUCTS_ROUTES)
-    }
-];
-```
-
----
-
-### 4. 📄 Créer une page
-
-```bash
-npm run g:page
-```
-
-**Prompts :**
-```
-? Nom de la page : Product Liste
-? Module cible : products
-```
-
-**Résultat :**
-```
-✅ Créé : features/products/views/product-liste/
-   ├── product-liste.page.ts
-   ├── product-liste.page.html
-   └── product-liste.page.scss
-
-✅ Route "product-liste" ajoutée à products/routes.ts (lazy loaded)
-```
-
-**Code généré dans la page :**
-```typescript
-import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ApiService } from '../../../../core/services/api.service';
-
-@Component({
-  selector: 'app-product-liste',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './product-liste.page.html',
-  styleUrls: ['./product-liste.page.scss']
-})
-export class ProductListePage implements OnInit {
-  private apiService = inject(ApiService);
-
-  // Signaux du service API
-  isLoading = this.apiService.loading;
-  backendErrors = this.apiService.backendErrors;
-
-  ngOnInit(): void {
-    this.loadData();
-  }
-
-  private loadData(): void {
-    // TODO: Implémenter le chargement des données
-    // Exemple:
-    // this.apiService.get<Product[]>('/products').subscribe({
-    //   next: (data) => console.log('Produits chargés', data),
-    //   error: (err) => console.error('Erreur', err)
-    // });
-  }
-}
-```
-
-**Template généré avec loader et gestion d'erreurs :**
-```html
-<div class="product-liste-container">
-  <!-- Loader -->
-  @if (isLoading()) {
-    <div class="loader">
-      <span class="loading loading-spinner loading-lg"></span>
-      <p>Chargement...</p>
-    </div>
-  }
-
-  <!-- Contenu principal -->
-  @if (!isLoading()) {
-    <div class="content">
-      <h1 class="text-2xl font-bold">Product Liste</h1>
-      <p>app-product-liste works!</p>
-    </div>
-  }
-
-  <!-- Affichage des erreurs backend -->
-  @if (backendErrors()) {
-    <div class="alert alert-error mt-4">
-      <span>{{ backendErrors() }}</span>
-    </div>
-  }
-</div>
-```
-
-**Routes mises à jour automatiquement :**
-```typescript
-export const PRODUCTS_ROUTES: Routes = [
-    {
-        path: '',
-        loadComponent: () => import('../../layout/main-layout/main-layout')
-          .then(m => m.MainLayout),
+        loadComponent: () => import('../../layout/main-layout/main-layout').then(m => m.MainLayout),
         canActivate: [AuthGuard],
         children: [
-            {
-                path: 'product-liste',
-                loadComponent: () => import('./views/product-liste/product-liste.page')
-                  .then(m => m.ProductListePage)
-            }
         ]
     }
 ];
 ```
 
+`app.routes.ts` is updated automatically:
+```typescript
+export const routes: Routes = [
+    { path: '', loadChildren: () => import('./features/auth/routes').then(m => m.AUTH_ROUTES) },
+    { path: 'dashboard', loadChildren: () => import('./features/dashboard/routes').then(m => m.DASHBOARD_ROUTES) },
+    { path: 'products', loadChildren: () => import('./features/products/routes').then(m => m.PRODUCTS_ROUTES) }
+];
+```
+
 ---
 
-### 5. 🧩 Créer un composant
+### 4. 📄 Create a page
+
+```bash
+npm run g:page
+```
+
+```
+? Page name: product-list
+? Module: (select from list)
+  ❯ auth
+    dashboard
+    products
+```
+
+**Generated files:**
+```
+features/products/views/product-list/
+├── product-list.page.ts
+├── product-list.page.html
+└── product-list.page.scss
+```
+
+**Generated `product-list.page.ts`:**
+```typescript
+import { Component, inject } from '@angular/core';
+import { ApiService } from '@/core/services/api.service';
+
+@Component({
+  selector: 'app-product-list',
+  standalone: true,
+  imports: [],
+  templateUrl: './product-list.page.html',
+  styleUrls: ['./product-list.page.scss']
+})
+export class ProductListPage {
+  private apiService = inject(ApiService);
+}
+```
+
+`routes.ts` is updated automatically with the new child route:
+```typescript
+children: [
+    {
+        path: 'product-list',
+        loadComponent: () => import('./views/product-list/product-list.page').then(m => m.ProductListPage)
+    }
+]
+```
+
+---
+
+### 5. 🧩 Create a component
 
 ```bash
 npm run g:component
 ```
 
-**Prompts :**
 ```
-? Nom du composant : product-card
-? Ce composant est-il global (shared) ? (Y/n)
-```
-
-**Si global (shared) :**
-```
-✅ Créé : shared/components/product-card/
-   ├── product-card.component.ts
-   ├── product-card.component.html
-   └── product-card.component.scss
+? Component name: product-card
+? Is it a global (shared) component? (Y/n)
 ```
 
-**Si non-global (feature) :**
+**If global (shared):**
 ```
-? Dans quel module ? products
+shared/components/product-card/
+├── product-card.component.ts
+├── product-card.component.html
+└── product-card.component.scss
+```
 
-✅ Créé : features/products/components/product-card/
-   ├── product-card.component.ts
-   ├── product-card.component.html
-   └── product-card.component.scss
+**If feature-scoped:**
+```
+? Module: products
+
+features/products/components/product-card/
+├── product-card.component.ts
+├── product-card.component.html
+└── product-card.component.scss
 ```
 
 ---
 
-### 6. ⚙️ Créer un service
+### 6. ⚙️ Create a service
 
 ```bash
 npm run g:service
 ```
 
-**Prompt :**
 ```
-? Nom du service : products
-```
-
-**Résultat :**
-```
-✅ Créé : core/services/products.service.ts
+? Service name: products
 ```
 
-**Exemple d'utilisation :**
-```typescript
-import { Injectable, inject } from '@angular/core';
-import { ApiService } from './api.service';
-import { Observable } from 'rxjs';
-
-@Injectable({
-  providedIn: 'root'
-})
-export class ProductsService {
-  private apiService = inject(ApiService);
-
-  getProducts(): Observable<Product[]> {
-    return this.apiService.get<Product[]>('/products');
-  }
-
-  getProduct(id: number): Observable<Product> {
-    return this.apiService.get<Product>(`/products/${id}`);
-  }
-
-  createProduct(data: any): Observable<Product> {
-    return this.apiService.post<Product>('/products', data);
-  }
-
-  updateProduct(id: number, data: any): Observable<Product> {
-    return this.apiService.put<Product>(`/products/${id}`, data);
-  }
-
-  deleteProduct(id: number): Observable<void> {
-    return this.apiService.delete<void>(`/products/${id}`);
-  }
-}
-```
+Creates `core/services/products.service.ts`.
 
 ---
 
-### 7. 📋 Créer un modèle
+### 7. 📋 Create a model
 
 ```bash
 npm run g:model
 ```
 
-**Prompts :**
 ```
-? Nom du modèle : product
-? Module cible : products
-```
-
-**Résultat :**
-```
-✅ Créé : features/products/models/product.model.ts
+? Model name: product
+? Module: products
 ```
 
-**Exemple de code généré :**
+Creates `features/products/models/product.ts`:
 ```typescript
 export interface Product {
-  id: number;
-  name: string;
-  price: number;
-  description: string;
-  // Ajoutez vos propriétés ici
+
 }
 ```
 
 ---
 
-### 8. 🛡️ Créer un guard
+### 8. 🛡️ Create a guard
 
 ```bash
 npm run g:guard
 ```
 
-**Prompt :**
 ```
-? Nom du guard : admin
-```
-
-**Résultat :**
-```
-✅ Créé : core/guards/admin.guard.ts
+? Guard name: admin
 ```
 
-**Exemple de guard personnalisé :**
+Creates `core/guards/admin.guard.ts`:
 ```typescript
-import { inject, Injectable } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
-import { CoreService } from '../services/core.service';
+import { CanActivateFn } from '@angular/router';
 
-@Injectable({
-  providedIn: 'root',
-})
-export class AdminGuard implements CanActivate {
-  private coreService = inject(CoreService);
-  private router = inject(Router);
-
-  canActivate() {
-    if (!this.coreService.hasRole('admin')) {
-      this.router.navigate(['/dashboard']);
-      return false;
-    }
-    return true;
-  }
-}
+export const AdminGuard: CanActivateFn = (route, state) => {
+  return true;
+};
 ```
 
 ---
 
-### 9. 🎨 Créer une directive
+### 9. 🎨 Create a directive
 
 ```bash
 npm run g:directive
 ```
 
-**Prompt :**
-```
-? Nom de la directive : highlight
-```
-
-**Résultat :**
-```
-✅ Créé : shared/directives/highlight.directive.ts
-```
+Creates `shared/directives/<name>.directive.ts` with a standalone directive scaffold.
 
 ---
 
-### 10. 🔧 Créer un pipe
+### 10. 🔧 Create a pipe
 
 ```bash
 npm run g:pipe
 ```
 
-**Prompt :**
-```
-? Nom du pipe : truncate
-```
-
-**Résultat :**
-```
-✅ Créé : shared/pipes/truncate.pipe.ts
-```
+Creates `shared/pipes/<name>.pipe.ts` with a standalone pipe scaffold.
 
 ---
 
-## 🎯 Workflow recommandé
-
-### Pour un nouveau projet :
+## 🎯 Recommended workflow
 
 ```bash
-# 1. Créer un projet Angular
-ng new mon-projet --standalone
+# 1. Create an Angular project
+ng new my-app
 
-# 2. Installer angular-cli-helper
-cd mon-projet
+# 2. Install angular-cli-helper
+cd my-app
 npm install angular-cli-helper --save-dev
 
-# 3. Initialiser la structure complète
+# 3. Initialize the full structure
 npm run g:init
-# ✅ Crée : structure, API, auth, guards, intercepteur
-# ✅ Génère : modules auth et dashboard par défaut
+# ✅ Creates: core services, auth, guards, interceptor, layout
+# ✅ Configures: tsconfig.json (@/* alias), angular.json, app.config.ts
 
-# 4. Créer vos modules métier
-npm run g:package
-# Nom : products
-# Guard : AuthGuard (routes authentifiées)
+# 4. Create your feature modules
+npm run g:package   # e.g. "products" with AuthGuard
 
-# 5. Créer des pages dans vos modules
-npm run g:page
-# Nom : Product Liste
-# Module : products
+# 5. Add pages to your modules
+npm run g:page      # e.g. "product-list" → select "products"
 
-# 6. Créer des composants réutilisables
-npm run g:component
-# Nom : product-card
-# Global : Non
-# Module : products
+# 6. Add reusable components
+npm run g:component # e.g. "product-card" → feature-scoped in "products"
 
-# 7. Créer des services métier
-npm run g:service
-# Nom : products
+# 7. Add business services
+npm run g:service   # e.g. "products"
 
-# 8. Créer des modèles
-npm run g:model
-# Nom : product
-# Module : products
+# 8. Add models
+npm run g:model     # e.g. "product" in "products"
 ```
 
 ---
 
-## 📖 Exemples pratiques
+## 🔑 API Service features
 
-### Exemple 1 : Application e-commerce complète
-
-```bash
-# 1. Initialiser le projet
-npm run g:init
-
-# 2. Créer le module produits (authentifié)
-npm run g:package
-> products
-> AuthGuard
-
-# 3. Créer les pages produits
-npm run g:page
-> Product Liste
-> products
-
-npm run g:page
-> Product Detail
-> products
-
-npm run g:page
-> Product Create
-> products
-
-# 4. Créer le module panier (authentifié)
-npm run g:package
-> cart
-> AuthGuard
-
-# 5. Créer la page panier
-npm run g:page
-> Cart View
-> cart
-
-# 6. Créer des composants partagés
-npm run g:component
-> product-card
-> Non
-> products
-
-npm run g:component
-> cart-item
-> Non
-> cart
-
-# 7. Créer les modèles
-npm run g:model
-> product
-> products
-
-npm run g:model
-> cart-item
-> cart
-
-# 8. Créer les services
-npm run g:service
-> products
-
-npm run g:service
-> cart
-```
-
-**Structure finale :**
-```
-features/
-├── auth/                    # Login, Register (GuestGuard)
-│   └── views/
-│       ├── login/
-│       └── register/
-├── dashboard/               # Tableau de bord (AuthGuard)
-│   └── views/
-│       └── home/
-├── products/                # Gestion produits (AuthGuard)
-│   ├── components/
-│   │   └── product-card/
-│   ├── views/
-│   │   ├── product-liste/
-│   │   ├── product-detail/
-│   │   └── product-create/
-│   ├── models/
-│   │   └── product.model.ts
-│   └── routes.ts
-└── cart/                    # Panier (AuthGuard)
-    ├── components/
-    │   └── cart-item/
-    ├── views/
-    │   └── cart-view/
-    ├── models/
-    │   └── cart-item.model.ts
-    └── routes.ts
-```
-
-**Routes générées :**
-```typescript
-export const routes: Routes = [
-    {
-        path: '',
-        loadChildren: () => import('./features/auth/routes').then(m => m.AUTH_ROUTES)
-    },
-    {
-        path: 'dashboard',
-        loadChildren: () => import('./features/dashboard/routes').then(m => m.DASHBOARD_ROUTES)
-    },
-    {
-        path: 'products',
-        loadChildren: () => import('./features/products/routes').then(m => m.PRODUCTS_ROUTES)
-    },
-    {
-        path: 'cart',
-        loadChildren: () => import('./features/cart/routes').then(m => m.CART_ROUTES)
-    }
-];
-```
-
-**Routes accessibles :**
-- `/login` - Page de connexion (public)
-- `/register` - Page d'inscription (public)
-- `/dashboard` - Tableau de bord (authentifié)
-- `/products/product-liste` - Liste des produits (authentifié)
-- `/products/product-detail` - Détail produit (authentifié)
-- `/products/product-create` - Créer produit (authentifié)
-- `/cart/cart-view` - Panier (authentifié)
-
----
-
-### Exemple 2 : Implémenter l'authentification
-
-**1. Créer une page de login dans le module auth :**
-
-```bash
-npm run g:page
-> Login
-> auth
-```
-
-**2. Implémenter la logique de connexion :**
+The generated `ApiService` includes:
 
 ```typescript
-// features/auth/views/login/login.page.ts
-import { Component, inject } from '@angular/core';
-import { Router } from '@angular/router';
-import { ApiService } from '../../../../core/services/api.service';
-import { CoreService } from '../../../../core/services/core.service';
+// Standard HTTP methods
+this.apiService.get<Product[]>('/products').subscribe();
+this.apiService.post<Product>('/products', data).subscribe();
+this.apiService.put<Product>('/products/1', data).subscribe();
+this.apiService.patch<Product>('/products/1', { name: 'X' }).subscribe();
+this.apiService.delete('/products/1').subscribe();
 
-export class LoginPage {
-  private apiService = inject(ApiService);
-  private coreService = inject(CoreService);
-  private router = inject(Router);
+// Paginated GET
+this.apiService.getPaginate<Product>('/products?page=1').subscribe();
 
-  login(credentials: { email: string; password: string }) {
-    this.apiService.post<{ token: string; user: any }>('/auth/login', credentials)
-      .subscribe({
-        next: (response) => {
-          // Stocker le token et l'utilisateur
-          this.coreService.setToken(response.token);
-          this.coreService.setCurrentUser(response.user);
-          
-          // Rediriger vers le dashboard
-          this.router.navigate(['/dashboard']);
-        },
-        error: (error) => {
-          console.error('Erreur de connexion', error);
-        }
-      });
-  }
-}
-```
+// File upload
+this.apiService.uploadFile('/upload', file).subscribe();
 
-**3. Le token sera automatiquement injecté dans toutes vos requêtes API !**
-
----
-
-## 🔑 Fonctionnalités clés du Service API
-
-Le service API généré automatiquement inclut :
-
-### Méthodes HTTP disponibles
-
-```typescript
-// GET
-this.apiService.get<Product[]>('/products').subscribe(products => { });
-
-// POST
-this.apiService.post<Product>('/products', productData).subscribe(product => { });
-
-// PUT
-this.apiService.put<Product>('/products/1', productData).subscribe(product => { });
-
-// PATCH
-this.apiService.patch<Product>('/products/1', { name: 'New Name' }).subscribe(product => { });
-
-// DELETE
-this.apiService.delete('/products/1').subscribe(() => { });
-
-// Upload de fichier
-this.apiService.uploadFile('/upload', file).subscribe(response => { });
-
-// Download de fichier
+// File download
 this.apiService.downloadFile('/export/pdf').subscribe(blob => { });
+
+// Get a file by URL
+this.apiService.getFile(url).subscribe(blob => { });
+
+// Build URL with query params
+const url = this.apiService.buildUrlWithParams('/products', { page: 1, limit: 10 });
 ```
 
-### Gestion automatique des erreurs
+**Automatic error handling:**
+
+| HTTP status | Behavior |
+|-------------|----------|
+| `0`         | Logs a network error message |
+| `401`       | Clears token + redirects to `/` |
+| `422`       | Stores validation errors in `backendErrors` signal |
+| Other       | Logs the error message |
+
+**Loading & error signals:**
 
 ```typescript
-// Les erreurs sont gérées automatiquement
-// Erreurs 422 (validation) stockées dans backendErrors signal
-backendErrors = this.apiService.backendErrors;
+isLoading     = this.apiService.loading;       // signal<boolean>
+backendErrors = this.apiService.backendErrors; // signal<Record<string, string[]>>
 
-// Dans le template
-@if (backendErrors()['email']) {
-  <p class="error">{{ backendErrors()['email'][0] }}</p>
-}
-
-// Erreur 401 : Redirection automatique vers /login
-// Erreur 0 : Affichage d'un message de connexion perdue
-```
-
-### État de chargement global
-
-```typescript
-// Signal loading disponible automatiquement
-isLoading = this.apiService.loading;
-
-// Dans le template
-@if (isLoading()) {
-  <div class="loader">
-    <span class="loading loading-spinner loading-lg"></span>
-    Chargement...
-  </div>
-}
-```
-
-### Effacer les erreurs
-
-```typescript
-// Effacer toutes les erreurs
+// Clear errors
 this.apiService.clearBackendErrors();
-
-// Effacer l'erreur d'un champ spécifique
 this.apiService.clearFieldError('email');
 ```
 
 ---
 
-## 🌍 Gestion des environnements
+## 🌍 Environments
 
-Les fichiers d'environnement sont créés automatiquement :
-
-**environment.ts (développement) :**
 ```typescript
+// environment.ts (development)
 export const environment = {
   production: false,
   apiUrl: 'http://localhost:3000/api'
 };
-```
 
-**environment.prod.ts (production) :**
-```typescript
+// environment.prod.ts (production)
 export const environment = {
   production: true,
-  apiUrl: 'https://api.votredomaine.com/api'
+  apiUrl: 'https://api.yourdomain.com/api'
 };
 ```
 
-**Build pour production :**
 ```bash
 ng build --configuration production
-```
-
-Les fichiers sont automatiquement remplacés grâce à la configuration `angular.json`.
-
----
-
-## 🔒 Sécurité et bonnes pratiques
-
-### Protection des routes
-
-```typescript
-// Route publique (GuestGuard)
-{
-  path: 'login',
-  loadChildren: () => import('./features/auth/routes').then(m => m.AUTH_ROUTES),
-  canActivate: [GuestGuard] // Redirige vers /dashboard si déjà connecté
-}
-
-// Route authentifiée (AuthGuard)
-{
-  path: 'admin',
-  loadChildren: () => import('./features/admin/routes').then(m => m.ADMIN_ROUTES),
-  canActivate: [AuthGuard] // Redirige vers /login si non connecté
-}
-
-// Route avec guard personnalisé (ex: AdminGuard)
-{
-  path: 'settings',
-  loadChildren: () => import('./features/settings/routes').then(m => m.SETTINGS_ROUTES),
-  canActivate: [AuthGuard, AdminGuard] // Vérifie auth + rôle admin
-}
-```
-
-### Injection automatique du token
-
-L'intercepteur HTTP est déjà configuré et injecte automatiquement le token :
-
-```typescript
-// Vos requêtes API
-this.apiService.get('/protected-endpoint').subscribe();
-
-// Devient automatiquement
-// GET https://api.votredomaine.com/api/protected-endpoint
-// Headers: { Authorization: 'Bearer <votre-token>' }
-```
-
-### Gestion de la déconnexion
-
-```typescript
-import { inject } from '@angular/core';
-import { Router } from '@angular/router';
-import { CoreService } from './core/services/core.service';
-
-export class HeaderComponent {
-  private coreService = inject(CoreService);
-  private router = inject(Router);
-
-  logout() {
-    // Efface le token et l'utilisateur
-    this.coreService.logout();
-    
-    // Redirige vers la page de login
-    this.router.navigate(['/login']);
-  }
-}
+# environment.ts is replaced by environment.prod.ts automatically
 ```
 
 ---
 
-## 🎨 Personnalisation
+## 📝 Available commands
 
-### Modifier le layout principal
-
-```bash
-# Le layout est dans
-src/app/layout/main-layout/
-├── main-layout.ts
-├── main-layout.html
-└── main-layout.scss
-```
-
-Vous pouvez personnaliser le header, footer et le contenu selon vos besoins.
-
-### Ajouter des guards personnalisés
-
-```bash
-npm run g:guard
-> role-based
-
-# Puis implémentez votre logique
-# ex: vérifier les rôles utilisateur
-```
-
-### Étendre le CoreService
-
-Ajoutez vos propres méthodes dans `core.service.ts` :
-
-```typescript
-export class CoreService {
-  // Méthodes existantes...
-
-  // Vos méthodes personnalisées
-  hasRole(role: string): boolean {
-    const roles = this.currentUser()?.roles || [];
-    return roles.includes(role);
-  }
-
-  hasPermission(permission: string): boolean {
-    const permissions = this.currentUser()?.permissions || [];
-    return permissions.includes(permission);
-  }
-
-  isAdmin(): boolean {
-    return this.hasRole('admin');
-  }
-}
-```
+| Command               | Description                                      |
+|-----------------------|--------------------------------------------------|
+| `npm run g:init`      | Initialize the full project structure            |
+| `npm run g:package`   | Create a new feature module with guard           |
+| `npm run g:page`      | Create a page inside a module (select from list) |
+| `npm run g:component` | Create a component (shared or feature-scoped)    |
+| `npm run g:service`   | Create a service in `core/services`              |
+| `npm run g:model`     | Create a model / interface                       |
+| `npm run g:guard`     | Create a custom guard in `core/guards`           |
+| `npm run g:directive` | Create a directive in `shared/directives`        |
+| `npm run g:pipe`      | Create a pipe in `shared/pipes`                  |
+| `npm run help`        | Display command help                             |
 
 ---
 
-## 📝 Commandes disponibles
+## 🆕 What's new in v6.2.0
 
-| Commande            | Description                                    |
-|---------------------|------------------------------------------------|
-| `npm run g:init`    | Initialise la structure complète du projet    |
-| `npm run g:package` | Crée un nouveau module métier avec guard       |
-| `npm run g:page`    | Crée une page dans un module                   |
-| `npm run g:component` | Crée un composant (shared ou feature)       |
-| `npm run g:service` | Crée un service dans core/services             |
-| `npm run g:model`   | Crée un modèle/interface                       |
-| `npm run g:guard`   | Crée un guard personnalisé                     |
-| `npm run g:directive` | Crée une directive dans shared/directives    |
-| `npm run g:pipe`    | Crée un pipe dans shared/pipes                 |
-| `npm run help`      | Affiche l'aide des commandes                   |
+- ✅ **Module selection as list** — `g:page` now shows available modules to pick from instead of free text input
+- ✅ **Reliable route insertion** — Comma handling fixed when adding multiple pages to `children`
+- ✅ **Consistent file naming** — All generated files use kebab-case (`folderName`) consistently
+- ✅ **`@/` path alias** — `tsconfig.json` updated automatically with `@/* → src/app/*`
+- ✅ **Preserved `app.config.ts`** — Init only injects HttpClient + interceptor, keeps existing config intact
+- ✅ **Shared utilities** — Internal helpers extracted to `src/utils.js` (no more duplication)
+- ✅ **Upgraded API service** — `getPaginate`, `uploadFile`, `downloadFile`, `getFile`, typed `ApiRequestOptions`
 
 ---
 
-## 🤝 Contribution
+## 🤝 Contributing
 
-Les contributions sont les bienvenues !
+Contributions are welcome!
 
-1. Fork le projet
-2. Créez votre branche (`git checkout -b feature/AmazingFeature`)
-3. Committez vos changements (`git commit -m 'Add some AmazingFeature'`)
-4. Push vers la branche (`git push origin feature/AmazingFeature`)
-5. Ouvrez une Pull Request
+1. Fork the project
+2. Create your branch (`git checkout -b feature/my-feature`)
+3. Commit your changes (`git commit -m 'Add my feature'`)
+4. Push to the branch (`git push origin feature/my-feature`)
+5. Open a Pull Request
 
 ---
 
-## 📄 Licence
+## 📄 License
 
 MIT © BIBANG BEFENE Joseph Donovan
 
 ---
 
-## 🔗 Liens
+## 🔗 Links
 
 - 📦 [npm](https://www.npmjs.com/package/angular-cli-helper)
-- 🔗 [GitHub](https://github.com/bibangjoseph/angular-cli-helper)
-- 📧 Contact : bibangjoseph@gmail.com
+- 🐙 [GitHub](https://github.com/bibangjoseph/angular-cli-helper)
+- 📧 Contact: bibangjoseph@gmail.com
 
 ---
 
-## ✨ Auteur
+Developed with ❤️ by **BIBANG BEFENE Joseph Donovan**
 
-Développé avec ❤️ par **BIBANG BEFENE Joseph Donovan**
-
-Si cet outil vous aide dans vos projets Angular, n'hésitez pas à :
-- ⭐ Mettre une étoile sur [GitHub](https://github.com/bibangjoseph/angular-cli-helper)
-- 📢 Partager avec la communauté Angular
-- 💬 Donner vos retours et suggestions
-
----
-
-## 🙏 Remerciements
-
-Merci à tous les développeurs Angular qui utilisent cet outil et contribuent à son amélioration !
-
----
-
-## 🆕 Nouveautés v6.x
-
-- ✅ Authentification complète intégrée (CoreService, Guards, Intercepteur)
-- ✅ Modules auth et dashboard créés par défaut
-- ✅ Choix du guard lors de la création d'un package
-- ✅ Routes avec `loadChildren` pour un lazy loading optimal
-- ✅ Injection automatique du token JWT dans les requêtes API
-- ✅ Configuration app.config.ts automatique
-- ✅ Support Angular 17-21+
-
----
-
-**Happy coding! 🚀**
-```
+If this tool helps you, consider starring the repo on [GitHub](https://github.com/bibangjoseph/angular-cli-helper) ⭐

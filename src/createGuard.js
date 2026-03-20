@@ -3,6 +3,7 @@ import inquirer from 'inquirer';
 import shelljs from 'shelljs';
 import path from 'path';
 import fs from 'fs';
+import { toPascalCase } from './utils.js';
 
 async function createGuard() {
     const { guardName } = await inquirer.prompt([
@@ -17,7 +18,7 @@ async function createGuard() {
     shelljs.mkdir('-p', folder);
 
     const filePath = path.join(folder, `${guardName}.guard.ts`);
-    const className = `${capitalize(guardName)}Guard`;
+    const className = `${toPascalCase(guardName)}Guard`;
 
     const content = `import { CanActivateFn } from '@angular/router';
 
@@ -27,10 +28,6 @@ export const ${className}: CanActivateFn = (route, state) => {
 
     fs.writeFileSync(filePath, content);
     console.log(`✅ Guard créé : ${filePath}`);
-}
-
-function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 createGuard();
