@@ -145,6 +145,7 @@ async function createPage() {
         const tsFile = path.join(basePath, `${folderName}.page.ts`);
         const htmlFile = path.join(basePath, `${folderName}.page.html`);
         const scssFile = path.join(basePath, `${folderName}.page.scss`);
+        const specFile = path.join(basePath, `${folderName}.page.spec.ts`);
 
         const tsContent = `import { Component, inject } from '@angular/core';
 import { ApiService } from '@/core/services/api.service';
@@ -160,9 +161,33 @@ export class ${className} {
   private apiService = inject(ApiService);
 }
 `;
+        const specContent = `import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ${className} } from './${folderName}.page';
+
+describe('${className}', () => {
+  let component: ${className};
+  let fixture: ComponentFixture<${className}>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [${className}]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(${className});
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+`;
+
         fs.writeFileSync(tsFile, tsContent);
         fs.writeFileSync(htmlFile, `<p>${selector} works!</p>\n`);
         fs.writeFileSync(scssFile, '');
+        fs.writeFileSync(specFile, specContent);
 
         console.log(`\n✅ Page "${pageName}" créée avec succès!`);
         console.log(`📁 Emplacement: ${basePath}`);
@@ -172,7 +197,8 @@ export class ${className} {
         console.log('\n📂 Fichiers créés:');
         console.log(`   ├── ${folderName}.page.ts`);
         console.log(`   ├── ${folderName}.page.html`);
-        console.log(`   └── ${folderName}.page.scss`);
+        console.log(`   ├── ${folderName}.page.scss`);
+        console.log(`   └── ${folderName}.page.spec.ts`);
         console.log(`\n💡 Accessible via: /${toKebabCase(moduleName)}/${toKebabCase(folderName)}\n`);
 
     } catch (error) {

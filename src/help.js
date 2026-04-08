@@ -3,132 +3,146 @@
 function showHelp() {
     console.log(`
 ╔═══════════════════════════════════════════════════════════════════════╗
-║                  Angular CLI Helper - Guide des commandes             ║
+║              Angular CLI Helper v6.2.0 - Command Guide                ║
 ╚═══════════════════════════════════════════════════════════════════════╝
 
-📦 GESTION DE PROJET
+📦 PROJECT SETUP
 ──────────────────────────────────────────────────────────────────────────
-  init-project              Initialiser la structure complète du projet
-                           • Crée les dossiers core/, shared/, features/
-                           • Génère le service API avec gestion d'erreurs
-                           • Configure les environnements (local/prod)
-                           • Crée le main-layout component
+  npm run g:init          Initialize the full project structure
+                           • Creates core/, shared/, layout/, features/
+                           • Generates API service, CoreService, guards
+                           • Adds HTTP interceptor (auto JWT injection)
+                           • Configures app.config.ts (HttpClient + interceptor)
+                           • Adds @/* path alias to tsconfig.json
+                           • Sets up environments (dev / prod)
+                           • Creates auth & dashboard modules by default
 
-🧩 GÉNÉRATION DE CODE
+🧩 CODE GENERATION
 ──────────────────────────────────────────────────────────────────────────
-  g:package           Créer un module métier complet
-                           • Structure: components/, views/, models/, services/
-                           • Routes configurées avec lazy loading
-                           • Service avec HttpClient intégré
-                           
-  g:page              Créer une page dans un module
-                           • Import automatique du ApiService
-                           • ngOnInit() pré-configuré
-                           • Template avec loader et gestion d'erreurs
-                           • Routes mises à jour automatiquement
-                           
-  g:component         Créer un composant standalone
-                           • Option: global (shared) ou feature
-                           • Template + styles générés
-                           
-  g:service           Créer un service injectable
-                           • Créé dans core/services/
+  npm run g:package       Create a feature module
+                           • Structure: components/, views/, models/
+                           • routes.ts with lazy loading
+                           • Guard selection: AuthGuard / GuestGuard / none
+                           • app.routes.ts updated automatically
+
+  npm run g:page          Create a page inside a module
+                           • Module selected from list (no typing)
+                           • ApiService injected automatically
+                           • Files named in kebab-case
+                           • Route added to module's routes.ts automatically
+
+  npm run g:component     Create a standalone component
+                           • Choice: global (shared/) or feature-scoped
+                           • Generates .ts, .html, .scss
+
+  npm run g:service       Create an injectable service
+                           • Created in core/services/
                            • providedIn: 'root'
-                           
-  g:model             Créer une interface TypeScript
-                           • Créé dans le dossier models/ du module
-                           
-  g:guard             Créer un guard de route
-                           • Créé dans core/guards/
-                           
-  g:directive         Créer une directive standalone
-                           • Créée dans shared/directives/
-                           
-  g:pipe              Créer un pipe standalone
-                           • Créé dans shared/pipes/
 
-📚 EXEMPLES D'UTILISATION
+  npm run g:model         Create a TypeScript interface
+                           • Created in features/<module>/models/
+
+  npm run g:guard         Create a route guard
+                           • Created in core/guards/
+                           • Uses CanActivateFn (modern syntax)
+
+  npm run g:directive     Create a standalone directive
+                           • Created in shared/directives/
+
+  npm run g:pipe          Create a standalone pipe
+                           • Created in shared/pipes/
+
+🔑 API SERVICE  (core/services/api.service.ts)
 ──────────────────────────────────────────────────────────────────────────
-  # Démarrer un nouveau projet
-  $ init-project
-  
-  # Créer un module complet
-  $ g:package
-  > users
-  
-  # Créer une page avec API
-  $ g:page
-  > User Liste
-  > users
-  
-  # Créer un composant global
-  $ g:component
-  > user-card
-  > Oui (Y)
+  HTTP methods:
+  • get<T>(url, options?)
+  • post<T>(url, data, options?)
+  • put<T>(url, data, options?)
+  • patch<T>(url, data, options?)
+  • delete<T>(url, options?)
 
-🔑 FONCTIONNALITÉS DU SERVICE API
+  Extra methods:
+  • getPaginate<T>(url)           Paginated GET → PaginatedResponse<T>
+  • uploadFile<T>(url, file)      Multipart file upload
+  • downloadFile(url)             Download as Blob
+  • getFile(url)                  Fetch file by URL
+  • buildUrlWithParams(url, obj)  Build URL with query params
+
+  Signals:
+  • loading                       signal<boolean>
+  • backendErrors                 signal<Record<string, string[]>>
+  • clearBackendErrors()
+  • clearFieldError(fieldName)
+
+  Auto error handling:
+  • 0   → Network error message
+  • 401 → Clears token + redirects to /
+  • 422 → Stores validation errors in backendErrors signal
+
+🔐 AUTHENTICATION  (core/services/core.service.ts)
 ──────────────────────────────────────────────────────────────────────────
-  Le service API (core/services/api.service.ts) inclut:
-  
-  • Méthodes HTTP: get, post, put, patch, delete
-  • Pagination: getPaginate()
-  • Upload/Download: uploadFile(), downloadFile()
-  • Signals: loading, backendErrors
-  • Gestion d'erreurs centralisée (401, 422, 500, etc.)
-  • Mode debug automatique selon environnement
+  • setToken(token)               Save JWT token
+  • setCurrentUser(user)          Save current user
+  • logout()                      Clear token + user
+  • clearToken()                  Clear token only
+  • isAuthenticated               computed signal<boolean>
+  • currentUser                   computed signal<User | null>
+  • token                         computed signal<string | null>
 
-📖 STRUCTURE DE PROJET GÉNÉRÉE
+📖 GENERATED PROJECT STRUCTURE
 ──────────────────────────────────────────────────────────────────────────
-  src/app/
-  ├── core/
-  │   ├── services/        # Services globaux (api, auth...)
-  │   ├── guards/          # Route guards
-  │   └── interceptors/    # HTTP interceptors
-  ├── shared/
-  │   ├── components/      # Composants réutilisables
-  │   ├── directives/      # Directives personnalisées
-  │   └── pipes/           # Pipes personnalisés
-  ├── layout/
-  │   └── main-layout/     # Layout principal
-  ├── features/            # Modules métier
-  │   └── users/
-  │       ├── components/
-  │       ├── views/
-  │       ├── models/
-  │       └── routes.ts
-  └── app.routes.ts
+  src/
+  ├── app/
+  │   ├── core/
+  │   │   ├── services/          api.service.ts, core.service.ts
+  │   │   ├── guards/            auth.guard.ts, guest.guard.ts
+  │   │   └── interceptors/      http.interceptor.ts
+  │   ├── shared/
+  │   │   ├── components/
+  │   │   ├── directives/
+  │   │   └── pipes/
+  │   ├── layout/
+  │   │   └── main-layout/
+  │   ├── features/
+  │   │   ├── auth/              routes.ts (GuestGuard)
+  │   │   └── dashboard/         routes.ts (AuthGuard)
+  │   ├── app.ts
+  │   ├── app.config.ts
+  │   └── app.routes.ts
+  └── environments/
+      ├── environment.ts
+      └── environment.prod.ts
 
-🌍 ENVIRONNEMENTS
+🌍 ENVIRONMENTS
 ──────────────────────────────────────────────────────────────────────────
   Development:  src/environments/environment.ts
   Production:   src/environments/environment.prod.ts
-  
-  Build prod:   ng build --configuration production
 
-💡 CONSEILS
-──────────────────────────────────────────────────────────────────────────
-  1. Commencez toujours par: init-project
-  2. Créez vos modules métier avec: g:package
-  3. Utilisez g:page pour les pages complètes
-  4. Utilisez g:component pour les composants réutilisables
-  5. Le service API est automatiquement injecté dans les pages
+  Production build:  ng build --configuration production
+  (environment.ts is replaced by environment.prod.ts automatically)
 
-📦 VERSIONS SUPPORTÉES
+💡 RECOMMENDED WORKFLOW
 ──────────────────────────────────────────────────────────────────────────
-  Angular:  17, 18, 19, 20+
+  1. npm run g:init        Initialize structure (run once)
+  2. npm run g:package     Create a feature module
+  3. npm run g:page        Add pages to the module
+  4. npm run g:component   Add reusable components
+  5. npm run g:service     Add business services
+  6. npm run g:model       Add interfaces / models
+
+📦 REQUIREMENTS
+──────────────────────────────────────────────────────────────────────────
+  Angular:  17, 18, 19, 20, 21+
   Node:     >= 18.0.0
   npm:      >= 9.0.0
 
-🔗 RESSOURCES
+🔗 RESOURCES
 ──────────────────────────────────────────────────────────────────────────
-  Documentation: https://github.com/bibangjoseph/angular-cli-helper
-  npm:          https://www.npmjs.com/package/angular-cli-helper
-  Issues:       https://github.com/bibangjoseph/angular-cli-helper/issues
+  GitHub:   https://github.com/bibangjoseph/angular-cli-helper
+  npm:      https://www.npmjs.com/package/angular-cli-helper
+  Issues:   https://github.com/bibangjoseph/angular-cli-helper/issues
+  Contact:  bibangjoseph@gmail.com
 
-✨ BESOIN D'AIDE?
-──────────────────────────────────────────────────────────────────────────
-  Contactez: bibangjoseph@gmail.com
-  
   Happy coding! 🚀
     `);
 }
